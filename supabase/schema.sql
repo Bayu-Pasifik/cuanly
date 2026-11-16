@@ -277,3 +277,19 @@ revoke all on function accept_couple_invite(text) from public;
 revoke all on function couple_summary(date) from public;
 grant execute on function accept_couple_invite(text) to authenticated;
 grant execute on function couple_summary(date) to authenticated;
+
+create or replace function delete_my_account()
+returns void
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Belum masuk';
+  end if;
+  delete from auth.users where id = auth.uid();
+end $$;
+
+revoke all on function delete_my_account() from public;
+grant execute on function delete_my_account() to authenticated;

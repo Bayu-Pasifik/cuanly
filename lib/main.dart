@@ -3,9 +3,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'data/settings.dart';
-import 'ui/home.dart';
+import 'ui/auth_gate.dart';
 import 'ui/lock.dart';
-import 'ui/login.dart';
 import 'ui/theme.dart';
 
 const _url = String.fromEnvironment('SUPABASE_URL');
@@ -37,11 +36,7 @@ class CuanlyApp extends StatelessWidget {
       builder: (_, child) => LockGate(child: child!),
       home: _url.isEmpty
           ? const _MissingConfig()
-          : StreamBuilder<AuthState>(
-              stream: Supabase.instance.client.auth.onAuthStateChange,
-              builder: (_, _) =>
-                  Supabase.instance.client.auth.currentSession == null ? const LoginPage() : const HomePage(),
-            ),
+          : const AuthGate(),
       ),
     );
   }

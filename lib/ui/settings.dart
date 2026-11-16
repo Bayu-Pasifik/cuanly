@@ -6,9 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../data/account.dart';
 import '../data/backup.dart';
 import '../data/repo.dart';
 import '../data/settings.dart';
+import 'auth_gate.dart';
 import 'lock.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -140,6 +144,99 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  String? get _email {
+    try {
+      return Supabase.instance.client.auth.currentUser?.email;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _changePassword() async {
+    final pass = TextEditingController(), confirm = TextEditingController();
+    String? error;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, set) => AlertDialog(
+          title: const Text('Ubah password'),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextField(controller: pass, obscureText: true, decoration: const InputDecoration(labelText: 'Password baru')),
+            TextField(controller: confirm, obscureText: true, decoration: const InputDecoration(labelText: 'Ulangi password')),
+            if (error != null)
+              Padding(padding: const EdgeInsets.only(top: 8), child: Text(error!, style: TextStyle(color: Colors.red.shade700))),
+          ]),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+            FilledButton(
+              onPressed: () {
+                final p = newPasswordProblem(pass.text, confirm.text);
+                if (p != null) {
+                  set(() => error = p);
+                } else {
+                  Navigator.pop(ctx, true);
+                }
+              },
+              child: const Text('Simpan'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (ok != true || !mounted) return;
+    try {
+      await repo.changePassword(pass.text);
+      if (mounted) _snack('Password diperbarui');
+    } on AuthException catch (e) {
+      if (mounted) _snack(e.message);
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    final c = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, set) => AlertDialog(
+          title: const Text('Hapus akun?'),
+          content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Semua dompet, transaksi, impian, utang, dan data lain akan dihapus permanen dan tidak bisa dipulihkan. '
+                'Buat backup dulu bila perlu.'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: c,
+              onChanged: (_) => set(() {}),
+              decoration: InputDecoration(labelText: 'Ketik $deleteWord untuk melanjutkan'),
+            ),
+          ]),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700, foregroundColor: Colors.white),
+              onPressed: deleteConfirmed(c.text) ? () => Navigator.pop(ctx, true) : null,
+              child: const Text('Hapus akun'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      await repo.deleteMyAccount();
+      await _s.clearPin();
+      try {
+        await Supabase.instance.client.auth.signOut();
+      } catch (_) {}
+      if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _busy = false);
+        _snack('Gagal menghapus akun: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget section(String t) => Padding(
@@ -185,6 +282,27 @@ class _SettingsPageState extends State<SettingsPage> {
                 onChanged: _bioAvailable ? _toggleBio : null,
               ),
             ],
+          ]),
+        ),
+        section('Akun'),
+        Card(
+          child: Column(children: [
+            ListTile(
+              leading: const Icon(Icons.alternate_email),
+              title: const Text('Email'),
+              subtitle: Text(_email ?? '-'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.password_outlined),
+              title: const Text('Ubah password'),
+              onTap: _busy ? null : _changePassword,
+            ),
+            ListTile(
+              leading: Icon(Icons.delete_forever_outlined, color: Colors.red.shade700),
+              title: Text('Hapus akun', style: TextStyle(color: Colors.red.shade700)),
+              subtitle: const Text('Hapus akun dan semua datanya secara permanen'),
+              onTap: _busy ? null : _deleteAccount,
+            ),
           ]),
         ),
         section('Data'),
