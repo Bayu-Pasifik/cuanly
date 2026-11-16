@@ -13,16 +13,20 @@ class TransactionsPage extends StatefulWidget {
 }
 
 class _TransactionsPageState extends State<TransactionsPage> {
-  late Future<List<Map<String, dynamic>>> _f = repo.transactions(
-    month: DateTime.now(),
-  );
+  DateTime _month = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  late Future<List<Map<String, dynamic>>> _f = repo.transactions(month: _month);
 
   String _q = '';
   String? _kindFilter;
 
   void _reload() => setState(() {
-    _f = repo.transactions(month: DateTime.now());
+    _f = repo.transactions(month: _month);
   });
+
+  void _shift(int delta) {
+    _month = DateTime(_month.year, _month.month + delta, 1);
+    _reload();
+  }
 
   Future<void> _add([Map<String, dynamic>? existing]) async {
     final ok = await showModalBottomSheet<bool>(
@@ -48,8 +52,25 @@ class _TransactionsPageState extends State<TransactionsPage> {
         }).toList();
         return Column(
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () => _shift(-1),
+                  icon: const Icon(Icons.chevron_left),
+                ),
+                Text(
+                  DateFormat('MMMM yyyy', 'id_ID').format(_month),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                IconButton(
+                  onPressed: () => _shift(1),
+                  icon: const Icon(Icons.chevron_right),
+                ),
+              ],
+            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
               child: TextField(
                 onChanged: (v) => setState(() => _q = v),
                 decoration: const InputDecoration(
@@ -82,7 +103,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                   ? Center(
                       child: Text(
                         all.isEmpty
-                            ? 'Belum ada transaksi bulan ini.'
+                            ? 'Belum ada transaksi di bulan ini.'
                             : 'Tidak ada hasil.',
                       ),
                     )
