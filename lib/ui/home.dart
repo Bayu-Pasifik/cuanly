@@ -13,6 +13,7 @@ import 'investments.dart';
 import 'debts.dart';
 import 'recurring.dart';
 import 'reports.dart';
+import 'scan.dart';
 import 'settings.dart';
 import 'tracker.dart';
 import 'travel.dart';
@@ -69,6 +70,8 @@ class _HomePageState extends State<HomePage> {
               if (v == 'trv') _open(const TravelPage());
               if (v == 'cpl') _open(const CouplePage());
               if (v == 'inv') _open(const InvestmentsPage());
+              if (v == 'scn') _open(const ScanReceiptPage());
+              if (v == 'ins') _open(const InsightsPage());
               if (v == 'rep') _open(const ReportsPage());
               if (v == 'set') _open(const SettingsPage());
             },
@@ -79,6 +82,8 @@ class _HomePageState extends State<HomePage> {
               PopupMenuItem(value: 'trv', child: Text('Patungan perjalanan')),
               PopupMenuItem(value: 'cpl', child: Text('Mode pasangan')),
               PopupMenuItem(value: 'inv', child: Text('Investasi')),
+              PopupMenuItem(value: 'scn', child: Text('Scan struk')),
+              PopupMenuItem(value: 'ins', child: Text('Insight keuangan')),
               PopupMenuItem(value: 'cat', child: Text('Kategori')),
               PopupMenuItem(value: 'rec', child: Text('Transaksi berulang')),
               PopupMenuItem(value: 'set', child: Text('Pengaturan')),

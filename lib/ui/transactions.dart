@@ -280,9 +280,12 @@ class _TransactionsPageState extends State<TransactionsPage> {
 }
 
 class AddTransactionSheet extends StatefulWidget {
-  const AddTransactionSheet({super.key, this.existing});
+  const AddTransactionSheet({super.key, this.existing, this.prefill});
 
   final Map<String, dynamic>? existing;
+
+  /// Initial values for a new transaction (e.g. from a scanned receipt). Unlike [existing], saving adds a row.
+  final Map<String, dynamic>? prefill;
 
   @override
   State<AddTransactionSheet> createState() => _AddTransactionSheetState();
@@ -301,13 +304,14 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   @override
   void initState() {
     super.initState();
-    final e = widget.existing;
+    final e = widget.existing ?? widget.prefill;
     if (e != null) {
       _kind = e['kind'];
       _category = e['category'];
       _walletId = e['wallet_id'];
       _date = DateTime.parse(e['occurred_on']);
-      _amount.text = (e['amount'] as num).round().toString();
+      final amt = e['amount'] as num;
+      _amount.text = amt > 0 ? amt.round().toString() : '';
       _note.text = e['note'] ?? '';
     }
     _loadCats();
