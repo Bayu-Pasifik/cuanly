@@ -217,6 +217,15 @@ class Repo {
   Future<void> addDream(String title, num target) => db.from('dreams').insert({'title': title, 'target': target});
   Future<void> contributeDream(Map<String, dynamic> d, num amount) =>
       db.from('dreams').update({'saved': (d['saved'] as num) + amount}).eq('id', d['id']);
+  Future<void> updateDream(String id, String title, num target) =>
+      db.from('dreams').update({'title': title, 'target': target}).eq('id', id);
+  Future<void> updateDebt(String id, String person, String direction, num total, DateTime? due) =>
+      db.from('debts').update({
+        'person': person,
+        'direction': direction,
+        'total': total,
+        'due_on': due == null ? null : dateStr(due),
+      }).eq('id', id);
   Future<void> deleteDream(String id) => db.from('dreams').delete().eq('id', id);
 
   Future<List<Map<String, dynamic>>> debts() async =>

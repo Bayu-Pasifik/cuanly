@@ -16,16 +16,16 @@ class _DebtsPageState extends State<DebtsPage> {
   late Future<List<Map<String, dynamic>>> _f = repo.debts();
   void _reload() => setState(() { _f = repo.debts(); });
 
-  Future<void> _add() async {
-    final person = TextEditingController();
-    final total = TextEditingController();
-    String dir = 'owe';
-    DateTime? due;
+  Future<void> _add([Map<String, dynamic>? d]) async {
+    final person = TextEditingController(text: d?['person']);
+    final total = TextEditingController(text: d == null ? '' : (d['total'] as num).round().toString());
+    String dir = d?['direction'] ?? 'owe';
+    DateTime? due = d?['due_on'] == null ? null : DateTime.parse(d!['due_on']);
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
-          title: const Text('Catat utang'),
+          title: Text(d == null ? 'Catat utang' : 'Ubah utang'),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
             SegmentedButton<String>(
               segments: const [
@@ -48,6 +48,7 @@ class _DebtsPageState extends State<DebtsPage> {
               },
               child: Text(due == null ? 'Jatuh tempo (opsional)' : DateFormat('d MMM y', 'id_ID').format(due!)),
             ),
+            if (due != null) TextButton(onPressed: () => set(() => due = null), child: const Text('Hapus tanggal tempo')),
           ]),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
@@ -57,9 +58,22 @@ class _DebtsPageState extends State<DebtsPage> {
       ),
     );
     final t = parseAmount(total.text);
-    if (ok == true && person.text.trim().isNotEmpty && t != null && t > 0 && mounted) {
-      await guarded(context, () => repo.addDebt(person.text.trim(), dir, t, due), _reload);
+    if (ok != true || !mounted) return;
+    if (person.text.trim().isEmpty || t == null || t <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Isi nama dan jumlah')));
+      return;
     }
+    if (d != null && t < (d['paid'] as num)) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Jumlah tidak boleh di bawah yang sudah dibayar (${rp(d['paid'])})')));
+      return;
+    }
+    await guarded(
+        context,
+        () => d == null
+            ? repo.addDebt(person.text.trim(), dir, t, due)
+            : repo.updateDebt(d['id'], person.text.trim(), dir, t, due),
+        _reload);
   }
 
   @override
@@ -92,7 +106,9 @@ class _DebtsPageState extends State<DebtsPage> {
                     ]),
                     trailing: PopupMenuButton<String>(
                       onSelected: (v) async {
-                        if (v == 'pay') {
+                        if (v == 'edit') {
+                          await _add(d);
+                        } else if (v == 'pay') {
                           final a = await askAmount(context, 'Jumlah dibayar');
                           if (a != null && context.mounted) await guarded(context, () => repo.payDebt(d, a), _reload);
                         } else {
@@ -103,6 +119,7 @@ class _DebtsPageState extends State<DebtsPage> {
                       },
                       itemBuilder: (_) => const [
                         PopupMenuItem(value: 'pay', child: Text('Catat pembayaran')),
+                        PopupMenuItem(value: 'edit', child: Text('Ubah')),
                         PopupMenuItem(value: 'del', child: Text('Hapus')),
                       ],
                     ),

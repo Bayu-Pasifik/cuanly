@@ -15,13 +15,13 @@ class _DreamsPageState extends State<DreamsPage> {
   late Future<List<Map<String, dynamic>>> _f = repo.dreams();
   void _reload() => setState(() { _f = repo.dreams(); });
 
-  Future<void> _add() async {
-    final title = TextEditingController();
-    final target = TextEditingController();
+  Future<void> _add([Map<String, dynamic>? d]) async {
+    final title = TextEditingController(text: d?['title']);
+    final target = TextEditingController(text: d == null ? '' : (d['target'] as num).round().toString());
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Impian baru'),
+        title: Text(d == null ? 'Impian baru' : 'Ubah impian'),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           TextField(controller: title, decoration: const InputDecoration(labelText: 'Apa impianmu?')),
           TextField(
@@ -36,9 +36,15 @@ class _DreamsPageState extends State<DreamsPage> {
       ),
     );
     final t = parseAmount(target.text);
-    if (ok == true && title.text.trim().isNotEmpty && t != null && t > 0 && mounted) {
-      await guarded(context, () => repo.addDream(title.text.trim(), t), _reload);
+    if (ok != true || !mounted) return;
+    if (title.text.trim().isEmpty || t == null || t <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Isi impian dan target')));
+      return;
     }
+    await guarded(
+        context,
+        () => d == null ? repo.addDream(title.text.trim(), t) : repo.updateDream(d['id'], title.text.trim(), t),
+        _reload);
   }
 
   @override
@@ -56,7 +62,9 @@ class _DreamsPageState extends State<DreamsPage> {
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Row(children: [
                             Expanded(child: Text(d['title'], style: Theme.of(context).textTheme.titleMedium)),
+                            IconButton(tooltip: 'Ubah', icon: const Icon(Icons.edit_outlined), onPressed: () => _add(d)),
                             IconButton(
+                                tooltip: 'Hapus',
                                 icon: const Icon(Icons.delete_outline),
                                 onPressed: () async {
                                   if (await confirmDelete(context, 'Hapus impian "${d['title']}"?') && context.mounted) {
