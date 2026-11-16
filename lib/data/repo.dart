@@ -9,6 +9,42 @@ String dateStr(DateTime d) => d.toIso8601String().substring(0, 10);
 String monthStart(DateTime d) => dateStr(DateTime(d.year, d.month, 1));
 
 class Repo {
+  /// Category rows of [kind]; seeds the defaults the first time.
+  Future<List<Map<String, dynamic>>> categoryRows(String kind) async {
+    Future<List<Map<String, dynamic>>> load() async => List<Map<String, dynamic>>.from(
+        await db.from('categories').select().eq('kind', kind).order('created_at').order('name'));
+    var rows = await load();
+    if (rows.isEmpty) {
+      final defaults = kind == 'income' ? incomeCategories : expenseCategories;
+      await db.from('categories').upsert([for (final n in defaults) {'kind': kind, 'name': n}],
+          onConflict: 'user_id,kind,name', ignoreDuplicates: true);
+      rows = await load();
+    }
+    return rows;
+  }
+
+  Future<List<String>> categoryNames(String kind) async =>
+      [for (final r in await categoryRows(kind)) r['name'] as String];
+
+  Future<void> addCategory(String kind, String name) =>
+      db.from('categories').insert({'kind': kind, 'name': name});
+
+  /// Renames a category everywhere it is referenced by name.
+  Future<void> renameCategory(Map<String, dynamic> row, String name) async {
+    await db.from('categories').update({'name': name}).eq('id', row['id']);
+    final old = row['name'];
+    await db.from('transactions').update({'category': name}).eq('kind', row['kind']).eq('category', old);
+    await db.from('recurring').update({'category': name}).eq('kind', row['kind']).eq('category', old);
+    if (row['kind'] == 'expense') {
+      await db.from('category_budgets').update({'category': name}).eq('category', old);
+    }
+  }
+
+  Future<void> deleteCategory(Map<String, dynamic> row) async {
+    await db.from('categories').delete().eq('id', row['id']);
+    if (row['kind'] == 'expense') await db.from('category_budgets').delete().eq('category', row['name']);
+  }
+
   Future<List<Map<String, dynamic>>> wallets() async =>
       List<Map<String, dynamic>>.from(await db.from('wallets').select().order('created_at'));
 

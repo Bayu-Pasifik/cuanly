@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'categories.dart';
 import 'dashboard.dart';
 import 'dreams.dart';
 import 'debts.dart';
@@ -25,6 +26,12 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Text(_titles[_i]),
         actions: [
+          PopupMenuButton<String>(
+            onSelected: (v) {
+              if (v == 'cat') Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoriesPage()));
+            },
+            itemBuilder: (_) => const [PopupMenuItem(value: 'cat', child: Text('Kategori'))],
+          ),
           IconButton(
             tooltip: 'Keluar',
             icon: const Icon(Icons.logout),

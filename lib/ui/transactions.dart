@@ -227,10 +227,27 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       _amount.text = (e['amount'] as num).round().toString();
       _note.text = e['note'] ?? '';
     }
+    _loadCats();
   }
 
-  List<String> get _cats =>
-      _kind == 'expense' ? expenseCategories : incomeCategories;
+  final _catCache = <String, List<String>>{};
+
+  Future<void> _loadCats() async {
+    final kind = _kind;
+    try {
+      final names = await repo.categoryNames(kind);
+      if (mounted) setState(() => _catCache[kind] = names);
+    } catch (_) {
+      if (mounted) setState(() => _catCache[kind] = kind == 'expense' ? expenseCategories : incomeCategories);
+    }
+  }
+
+  List<String> get _cats {
+    final base = _catCache[_kind] ?? const <String>[];
+    final c = _category;
+    // Keep a since-deleted category visible when editing an old transaction.
+    return (c != null && !base.contains(c) && widget.existing?['kind'] == _kind) ? [...base, c] : base;
+  }
 
   Future<void> _save() async {
     final amt = parseAmount(_amount.text);
@@ -286,10 +303,13 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
               ButtonSegment(value: 'income', label: Text('Pemasukan')),
             ],
             selected: {_kind},
-            onSelectionChanged: (s) => setState(() {
-              _kind = s.first;
-              _category = null;
-            }),
+            onSelectionChanged: (s) {
+              setState(() {
+                _kind = s.first;
+                _category = null;
+              });
+              if (!_catCache.containsKey(_kind)) _loadCats();
+            },
           ),
           const SizedBox(height: 12),
           TextField(
