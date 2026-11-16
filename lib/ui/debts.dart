@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../data/history_repo.dart';
 import '../data/repo.dart';
 import 'common.dart';
+import 'history.dart';
 import 'theme.dart';
 
 class DebtsPage extends StatefulWidget {
@@ -106,7 +108,15 @@ class _DebtsPageState extends State<DebtsPage> {
                     ]),
                     trailing: PopupMenuButton<String>(
                       onSelected: (v) async {
-                        if (v == 'edit') {
+                        if (v == 'hist') {
+                          final changed = await showHistory(context,
+                              title: 'Riwayat pembayaran - ${d['person']}',
+                              load: () => repo.debtPayments(d['id']),
+                              dateKey: 'paid_on',
+                              onDelete: repo.deleteDebtPayment,
+                              total: d['paid']);
+                          if (changed) _reload();
+                        } else if (v == 'edit') {
                           await _add(d);
                         } else if (v == 'pay') {
                           final a = await askAmount(context, 'Jumlah dibayar');
@@ -119,6 +129,7 @@ class _DebtsPageState extends State<DebtsPage> {
                       },
                       itemBuilder: (_) => const [
                         PopupMenuItem(value: 'pay', child: Text('Catat pembayaran')),
+                        PopupMenuItem(value: 'hist', child: Text('Riwayat pembayaran')),
                         PopupMenuItem(value: 'edit', child: Text('Ubah')),
                         PopupMenuItem(value: 'del', child: Text('Hapus')),
                       ],

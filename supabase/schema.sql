@@ -88,10 +88,28 @@ create table if not exists category_budgets (
   primary key (user_id, category)
 );
 
+create table if not exists debt_payments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  debt_id uuid not null references debts on delete cascade,
+  amount numeric not null check (amount > 0),
+  paid_on date not null default current_date,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists dream_contributions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  dream_id uuid not null references dreams on delete cascade,
+  amount numeric not null check (amount > 0),
+  saved_on date not null default current_date,
+  created_at timestamptz not null default now()
+);
+
 do $$
 declare t text;
 begin
-  foreach t in array array['wallets', 'transactions', 'monthly_targets', 'dreams', 'debts', 'transfers', 'categories', 'recurring', 'category_budgets'] loop
+  foreach t in array array['wallets', 'transactions', 'monthly_targets', 'dreams', 'debts', 'transfers', 'categories', 'recurring', 'category_budgets', 'debt_payments', 'dream_contributions'] loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists own_rows on %I', t);
     execute format(
