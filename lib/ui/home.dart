@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/recurring_repo.dart';
+import '../data/reminders.dart';
 import '../data/repo.dart';
 import 'categories.dart';
 import 'dashboard.dart';
@@ -28,6 +29,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _bookRecurring();
+    repo.debts().then(Reminders.sync).catchError((_) {});
   }
 
   Future<void> _bookRecurring() async {

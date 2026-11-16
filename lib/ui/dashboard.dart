@@ -2,12 +2,14 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../data/reminders.dart';
 import '../data/repo.dart';
 import 'common.dart';
 import 'theme.dart';
 
 class _Summary {
-  _Summary(this.wallets, this.txs, this.budget, this.trend, this.catBudgets);
+  _Summary(this.wallets, this.txs, this.budget, this.trend, this.catBudgets, this.debts);
+  final List<Map<String, dynamic>> debts;
   final Map<String, num> catBudgets;
   final List<({DateTime month, num income, num expense})> trend;
   final List<Map<String, dynamic>> wallets;
@@ -17,8 +19,8 @@ class _Summary {
 
 Future<_Summary> _load() async {
   final now = DateTime.now();
-  final r = await Future.wait([repo.wallets(), repo.transactions(month: now), repo.budget(now), repo.trend(now), repo.categoryBudgets()]);
-  return _Summary(r[0] as List<Map<String, dynamic>>, r[1] as List<Map<String, dynamic>>, r[2] as num?, r[3] as List<({DateTime month, num income, num expense})>, r[4] as Map<String, num>);
+  final r = await Future.wait([repo.wallets(), repo.transactions(month: now), repo.budget(now), repo.trend(now), repo.categoryBudgets(), repo.debts()]);
+  return _Summary(r[0] as List<Map<String, dynamic>>, r[1] as List<Map<String, dynamic>>, r[2] as num?, r[3] as List<({DateTime month, num income, num expense})>, r[4] as Map<String, num>, r[5] as List<Map<String, dynamic>>);
 }
 
 class DashboardPage extends StatefulWidget {
@@ -251,6 +253,35 @@ class _DashboardPageState extends State<DashboardPage> {
                   ]),
                 ),
               ),
+              Builder(builder: (_) {
+                final due = dueDebts(s.debts, DateTime.now());
+                if (due.isEmpty) return const SizedBox.shrink();
+                return Card(
+                  color: C.orange,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16, 4, 16, 0),
+                        child: Row(children: [
+                          Icon(Icons.notifications_active_outlined, size: 18),
+                          SizedBox(width: 6),
+                          Text('Jatuh tempo', style: TextStyle(fontWeight: FontWeight.w800)),
+                        ]),
+                      ),
+                      for (final d in due)
+                        ListTile(
+                          dense: true,
+                          title: Text('${d.owe ? 'Ke' : 'Dari'} ${d.debt['person']} • ${rp(d.remaining)}'),
+                          subtitle: Text(dueLabel(d),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: d.status == DueStatus.overdue ? Colors.red.shade900 : C.ink)),
+                        ),
+                    ]),
+                  ),
+                );
+              }),
               Row(children: [
                 Expanded(
                   child: Card(

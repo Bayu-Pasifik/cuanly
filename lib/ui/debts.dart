@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../data/history_repo.dart';
+import '../data/reminders.dart';
 import '../data/repo.dart';
 import 'common.dart';
 import 'history.dart';
@@ -15,8 +16,16 @@ class DebtsPage extends StatefulWidget {
 }
 
 class _DebtsPageState extends State<DebtsPage> {
-  late Future<List<Map<String, dynamic>>> _f = repo.debts();
-  void _reload() => setState(() { _f = repo.debts(); });
+  Future<List<Map<String, dynamic>>> _load() async {
+    final list = await repo.debts();
+    Reminders.sync(list); // keep notifications in step with edits
+    return list;
+  }
+
+  late Future<List<Map<String, dynamic>>> _f = _load();
+  void _reload() => setState(() {
+        _f = _load();
+      });
 
   Future<void> _add([Map<String, dynamic>? d]) async {
     final person = TextEditingController(text: d?['person']);
