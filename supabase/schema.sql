@@ -119,10 +119,20 @@ create table if not exists spending_challenges (
   check (end_date >= start_date)
 );
 
+create table if not exists travel_splits (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  trip_name text not null,
+  total_amount numeric not null default 0,
+  participants jsonb not null default '[]'::jsonb,  -- [{"name": "Budi"}]
+  expenses jsonb not null default '[]'::jsonb,      -- [{"description": "Hotel", "amount": 500000, "paidBy": "Budi"}]
+  created_at timestamptz not null default now()
+);
+
 do $$
 declare t text;
 begin
-  foreach t in array array['wallets', 'transactions', 'monthly_targets', 'dreams', 'debts', 'transfers', 'categories', 'recurring', 'category_budgets', 'debt_payments', 'dream_contributions', 'spending_challenges'] loop
+  foreach t in array array['wallets', 'transactions', 'monthly_targets', 'dreams', 'debts', 'transfers', 'categories', 'recurring', 'category_budgets', 'debt_payments', 'dream_contributions', 'spending_challenges', 'travel_splits'] loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists own_rows on %I', t);
     execute format(

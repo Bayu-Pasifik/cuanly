@@ -18,6 +18,7 @@ const backupTables = [
   'debt_payments',
   'dream_contributions',
   'spending_challenges',
+  'travel_splits',
 ];
 
 const _conflictKeys = {
