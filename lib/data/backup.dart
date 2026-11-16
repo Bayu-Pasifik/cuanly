@@ -19,6 +19,7 @@ const backupTables = [
   'dream_contributions',
   'spending_challenges',
   'travel_splits',
+  'investments',
 ];
 
 const _conflictKeys = {
