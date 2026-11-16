@@ -112,6 +112,11 @@ class _DashboardPageState extends State<DashboardPage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dompet harus beda dan jumlah > 0')));
       return;
     }
+    final bal = wallets.firstWhere((w) => w['id'] == from)['balance'] as num;
+    if (v > bal) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saldo dompet asal tidak cukup')));
+      return;
+    }
     await guarded(context, () => repo.transfer(from, to, v), _reload);
   }
 
