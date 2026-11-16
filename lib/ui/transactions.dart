@@ -1,5 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../data/export.dart';
 
 import '../data/repo.dart';
 import 'common.dart';
@@ -19,6 +27,36 @@ class _TransactionsPageState extends State<TransactionsPage> {
   String _q = '';
   String? _kindFilter;
   DateTimeRange? _range; // custom range replaces month navigation while set
+
+  /// Exports the rows currently shown (period, kind and search filters applied) and opens the share sheet.
+  Future<void> _export(List<Map<String, dynamic>> rows, bool pdf) async {
+    if (rows.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tidak ada data untuk diekspor')));
+      return;
+    }
+    final label = _range == null
+        ? DateFormat('MMMM yyyy', 'id_ID').format(_month)
+        : _rangeLabel(_range!);
+    final stamp = _range == null
+        ? DateFormat('yyyy-MM').format(_month)
+        : '${dateStr(_range!.start)}_${dateStr(_range!.end)}';
+    try {
+      final names = {for (final w in await repo.wallets()) w['id']: w['name']};
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/cuanly-$stamp.${pdf ? 'pdf' : 'csv'}');
+      if (pdf) {
+        await file.writeAsBytes(await buildPdf(label, rows, names));
+      } else {
+        await file.writeAsBytes(utf8.encode(buildCsv(rows, names)));
+      }
+      await SharePlus.instance.share(ShareParams(
+        files: [XFile(file.path, mimeType: pdf ? 'application/pdf' : 'text/csv')],
+        subject: 'Cuanly $label',
+      ));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal ekspor: $e')));
+    }
+  }
 
   Future<void> _pickRange() async {
     final now = DateTime.now();
@@ -104,6 +142,15 @@ class _TransactionsPageState extends State<TransactionsPage> {
                   tooltip: 'Pilih rentang tanggal',
                   onPressed: _pickRange,
                   icon: const Icon(Icons.date_range),
+                ),
+                PopupMenuButton<bool>(
+                  tooltip: 'Ekspor',
+                  icon: const Icon(Icons.ios_share),
+                  onSelected: (pdf) => _export(list, pdf),
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: false, child: Text('Ekspor CSV')),
+                    PopupMenuItem(value: true, child: Text('Ekspor PDF')),
+                  ],
                 ),
                 if (_range != null)
                   IconButton(
