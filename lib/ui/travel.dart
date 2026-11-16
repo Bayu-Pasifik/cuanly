@@ -105,13 +105,16 @@ class SplitSummary extends StatelessWidget {
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         PastelCard(
           color: C.sky,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Total pengeluaran', style: TextStyle(fontWeight: FontWeight.w700)),
-              Text(rp(split.total), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 26)),
-              Text('${rp(split.perPerson)} per orang (${people.length} orang)'),
-            ]),
+          child: SizedBox(
+            width: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Total pengeluaran', style: TextStyle(fontWeight: FontWeight.w700)),
+                Text(rp(split.total), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 26)),
+                Text('${rp(split.perPerson)} per orang (${people.length} orang)'),
+              ]),
+            ),
           ),
         ),
         const SizedBox(height: 12),

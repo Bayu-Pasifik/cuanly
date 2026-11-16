@@ -122,23 +122,27 @@ class PortfolioCard extends StatelessWidget {
             const SizedBox(height: 12),
             const Text('Alokasi', style: TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                height: 14,
-                child: Row(children: [
-                  for (var i = 0; i < p.byType.length; i++)
-                    Expanded(
-                      flex: (p.byType[i].value * 1000).round().clamp(1, 1 << 30),
-                      child: ColoredBox(color: C.chart[i % C.chart.length]),
-                    ),
-                ]),
-              ),
+            Container(
+              height: 14,
+              width: double.infinity,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: Colors.white54),
+              child: Row(children: [
+                for (var i = 0; i < p.byType.length; i++)
+                  Expanded(
+                    flex: (p.byType[i].value / p.value * 1000).round().clamp(1, 1000),
+                    child: Container(key: ValueKey('alloc-$i'), color: C.chart[i % C.chart.length]),
+                  ),
+              ]),
             ),
-            const SizedBox(height: 6),
-            Wrap(spacing: 12, children: [
+            const SizedBox(height: 8),
+            Wrap(spacing: 14, runSpacing: 4, children: [
               for (var i = 0; i < p.byType.length; i++)
-                Text('${p.byType[i].type} ${(p.byType[i].value / p.value * 100).round()}%'),
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  CircleAvatar(radius: 5, backgroundColor: C.chart[i % C.chart.length]),
+                  const SizedBox(width: 6),
+                  Text('${p.byType[i].type} ${(p.byType[i].value / p.value * 100).round()}%'),
+                ]),
             ]),
           ],
         ]),
@@ -263,10 +267,13 @@ class _AddInvestmentSheetState extends State<AddInvestmentSheet> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _type,
+              isExpanded: true,
               decoration: const InputDecoration(labelText: 'Jenis'),
               items: [
                 for (final t in investmentTypes)
-                  DropdownMenuItem(value: t.code, child: Text('${t.code} - ${t.name} (${riskLabel(t.risk)})')),
+                  DropdownMenuItem(
+                      value: t.code,
+                      child: Text('${t.code} - ${t.name} (${riskLabel(t.risk)})', maxLines: 1, overflow: TextOverflow.ellipsis)),
               ],
               onChanged: (v) => setState(() => _type = v ?? _type),
             ),

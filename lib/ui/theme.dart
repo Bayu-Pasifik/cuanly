@@ -75,6 +75,21 @@ ThemeData buildTheme([Brightness brightness = Brightness.light]) {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: border),
       ),
     ),
+    tabBarTheme: TabBarThemeData(
+      labelColor: fg,
+      unselectedLabelColor: fg.withValues(alpha: .6),
+      indicatorColor: C.yellow,
+      labelStyle: const TextStyle(fontWeight: FontWeight.w800),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: fg,
+        minimumSize: const Size(64, 52),
+        textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        side: BorderSide(color: fg, width: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+    ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(foregroundColor: fg, textStyle: const TextStyle(fontWeight: FontWeight.w700)),
     ),

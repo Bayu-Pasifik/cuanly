@@ -74,7 +74,7 @@ class CategoryDrillBody extends StatelessWidget {
       return p == 0 ? 'Sama seperti bulan lalu' : '${p > 0 ? '+' : ''}$p% dari bulan lalu';
     }
 
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       PastelCard(
         color: color,
         child: Padding(

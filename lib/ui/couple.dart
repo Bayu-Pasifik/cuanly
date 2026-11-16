@@ -60,6 +60,7 @@ class _CouplePageState extends State<CouplePage> {
       context,
       active ? 'Akhiri kemitraan?' : 'Batalkan undangan?',
       message: active ? 'Kalian tidak akan saling melihat ringkasan lagi.' : null,
+      confirmLabel: active ? 'Akhiri' : 'Batalkan',
     );
     if (!ok) return;
     await _run(() => repo.endCouple(row['id']));
@@ -211,7 +212,7 @@ class CoupleSummaryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = summary;
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       PastelCard(
         color: C.lilac,
         child: Padding(

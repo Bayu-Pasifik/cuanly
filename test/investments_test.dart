@@ -7,6 +7,7 @@ Map<String, dynamic> inv(String type, num cap, num? val, {String status = 'activ
     {'investment_type': type, 'amount': cap, 'current_value': val, 'status': status, 'purchase_date': '2026-01-01', 'notes': null};
 
 void main() {
+  regressions();
   test('summarize counts only active rows', () {
     final p = summarize([
       inv('Emas', 1000000, 1100000),
@@ -73,5 +74,23 @@ void main() {
     await tester.pump();
     expect(find.text('Rp 500.000'), findsOneWidget);
     expect(find.text('RDPU  50%'), findsOneWidget);
+  });
+}
+
+void regressions() {
+  testWidgets('allocation bar segments are actually drawn with width', (tester) async {
+    final p = summarize([inv('Emas', 1000000, 1100000), inv('BTC', 500000, 400000)]);
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: PortfolioCard(portfolio: p))));
+    for (var i = 0; i < 2; i++) {
+      expect(tester.getSize(find.byKey(ValueKey('alloc-$i'))).width, greaterThan(10));
+    }
+  });
+
+  testWidgets('add form does not overflow on a phone-width screen (long type names)', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: AddInvestmentSheet())));
+    expect(tester.takeException(), isNull);
   });
 }

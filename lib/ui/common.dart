@@ -51,14 +51,15 @@ class Async<T> extends StatelessWidget {
         future: future,
         builder: (c, s) {
           if (s.hasError) return Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Error: ${s.error}')));
-          if (!s.hasData) return const Center(child: CircularProgressIndicator());
+          // `done` rather than `hasData`: a future that completes with null (e.g. "no partner yet") is still a result.
+          if (s.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
           return builder(c, s.data as T);
         },
       );
 }
 
 /// Shows a delete confirmation dialog. Returns true only when confirmed.
-Future<bool> confirmDelete(BuildContext context, String title, {String? message}) async =>
+Future<bool> confirmDelete(BuildContext context, String title, {String? message, String confirmLabel = 'Hapus'}) async =>
     await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -66,7 +67,7 @@ Future<bool> confirmDelete(BuildContext context, String title, {String? message}
         content: message == null ? null : Text(message),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Hapus')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(confirmLabel)),
         ],
       ),
     ) ??

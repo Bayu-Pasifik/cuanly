@@ -261,7 +261,7 @@ class _ProductsTabState extends State<ProductsTab> {
                     tooltip: 'Arsipkan',
                     icon: const Icon(Icons.archive_outlined),
                     onPressed: () async {
-                      if (!await confirmDelete(context, 'Arsipkan "${p['name']}"?', message: 'Riwayat penjualan tetap tersimpan.')) return;
+                      if (!await confirmDelete(context, 'Arsipkan "${p['name']}"?', message: 'Riwayat penjualan tetap tersimpan.', confirmLabel: 'Arsipkan')) return;
                       if (!context.mounted) return;
                       await guarded(context, () => repo.archiveProduct(p['id']), _reload);
                     },
