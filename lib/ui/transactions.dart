@@ -130,6 +130,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                           return Dismissible(
                             key: ValueKey(t['id']),
                             background: Container(color: Colors.red.shade100),
+                            confirmDismiss: (_) => confirmDelete(context, xfer ? "Hapus transfer?" : "Hapus transaksi?", message: "Saldo dompet akan dikembalikan."),
                             onDismissed: (_) => guarded(
                               context,
                               () => xfer

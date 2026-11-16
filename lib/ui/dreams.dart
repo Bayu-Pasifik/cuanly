@@ -58,7 +58,11 @@ class _DreamsPageState extends State<DreamsPage> {
                             Expanded(child: Text(d['title'], style: Theme.of(context).textTheme.titleMedium)),
                             IconButton(
                                 icon: const Icon(Icons.delete_outline),
-                                onPressed: () => guarded(context, () => repo.deleteDream(d['id']), _reload)),
+                                onPressed: () async {
+                                  if (await confirmDelete(context, 'Hapus impian "${d['title']}"?') && context.mounted) {
+                                    await guarded(context, () => repo.deleteDream(d['id']), _reload);
+                                  }
+                                }),
                           ]),
                           LinearProgressIndicator(value: ((d['saved'] as num) / (d['target'] as num)).clamp(0, 1).toDouble()),
                           const SizedBox(height: 6),

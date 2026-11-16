@@ -96,7 +96,9 @@ class _DebtsPageState extends State<DebtsPage> {
                           final a = await askAmount(context, 'Jumlah dibayar');
                           if (a != null && context.mounted) await guarded(context, () => repo.payDebt(d, a), _reload);
                         } else {
-                          await guarded(context, () => repo.deleteDebt(d['id']), _reload);
+                          if (await confirmDelete(context, 'Hapus catatan utang?') && context.mounted) {
+                            await guarded(context, () => repo.deleteDebt(d['id']), _reload);
+                          }
                         }
                       },
                       itemBuilder: (_) => const [

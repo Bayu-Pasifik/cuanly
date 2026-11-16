@@ -56,3 +56,18 @@ class Async<T> extends StatelessWidget {
         },
       );
 }
+
+/// Shows a delete confirmation dialog. Returns true only when confirmed.
+Future<bool> confirmDelete(BuildContext context, String title, {String? message}) async =>
+    await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: message == null ? null : Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Hapus')),
+        ],
+      ),
+    ) ??
+    false;
