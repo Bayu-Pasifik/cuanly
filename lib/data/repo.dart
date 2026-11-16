@@ -20,6 +20,13 @@ class Repo {
 
   Future<void> deleteWallet(String id) => db.from('wallets').delete().eq('id', id);
 
+  /// Number of transactions and transfers that reference wallet [id].
+  Future<({int transactions, int transfers})> walletUsage(String id) async {
+    final t = await db.from('transactions').select('id').eq('wallet_id', id);
+    final f = await db.from('transfers').select('id').or('from_wallet.eq.$id,to_wallet.eq.$id');
+    return (transactions: (t as List).length, transfers: (f as List).length);
+  }
+
   Future<List<Map<String, dynamic>>> transactions({DateTime? month}) async {
     var q = db.from('transactions').select();
     if (month != null) {

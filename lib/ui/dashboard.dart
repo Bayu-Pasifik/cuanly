@@ -35,6 +35,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final name = TextEditingController(text: w?['name']);
     final bal = TextEditingController(text: w == null ? '' : (w['balance'] as num).round().toString());
     String type = w?['type'] ?? 'regular';
+    var wantDelete = false;
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => StatefulBuilder(
@@ -59,16 +60,48 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ]),
           actions: [
+            if (w != null)
+              TextButton(
+                  onPressed: () {
+                    wantDelete = true;
+                    Navigator.pop(ctx, false);
+                  },
+                  child: Text('Hapus', style: TextStyle(color: Colors.red.shade700))),
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
             FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Simpan')),
           ],
         ),
       ),
     );
+    if (wantDelete && w != null && mounted) {
+      if (await _confirmDeleteWallet(w) && mounted) {
+        await guarded(context, () => repo.deleteWallet(w['id']), _reload);
+      }
+      return;
+    }
     if (ok == true && name.text.trim().isNotEmpty && mounted) {
       final n = name.text.trim(), b = parseAmount(bal.text) ?? 0;
       await guarded(context, () => w == null ? repo.addWallet(n, type, b) : repo.updateWallet(w['id'], n, type, b), _reload);
     }
+  }
+
+  /// Asks before deleting [w], spelling out what happens to its balance and history.
+  Future<bool> _confirmDeleteWallet(Map<String, dynamic> w) async {
+    String msg;
+    try {
+      final u = await repo.walletUsage(w['id']);
+      final n = u.transactions + u.transfers;
+      msg = n == 0
+          ? 'Dompet belum dipakai transaksi.'
+          : '${u.transactions} transaksi dan ${u.transfers} transfer tetap ada, tapi tidak terhubung ke dompet ini lagi.';
+    } catch (_) {
+      msg = 'Transaksi tetap ada.';
+    }
+    if (((w['balance'] as num?) ?? 0) != 0) {
+      msg += ' Saldo ${rp(w['balance'])} ikut hilang dari total saldo.';
+    }
+    if (!mounted) return false;
+    return confirmDelete(context, 'Hapus dompet "${w['name']}"?', message: msg);
   }
 
   Future<void> _transfer(List<Map<String, dynamic>> wallets) async {
@@ -285,17 +318,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Dismissible(
                   key: ValueKey(w['id']),
                   background: Container(color: Colors.red.shade100),
-                  confirmDismiss: (_) async => await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: Text('Hapus dompet "${w['name']}"?'),
-                          content: const Text('Transaksinya tetap ada.'),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
-                            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Hapus')),
-                          ],
-                        ),
-                      ),
+                  confirmDismiss: (_) => _confirmDeleteWallet(w),
                   onDismissed: (_) => guarded(context, () => repo.deleteWallet(w['id']), _reload),
                   child: Card(
                     color: C.accents[s.wallets.indexOf(w) % C.accents.length],
