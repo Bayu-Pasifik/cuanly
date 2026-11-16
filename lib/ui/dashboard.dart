@@ -31,21 +31,21 @@ class _DashboardPageState extends State<DashboardPage> {
   late Future<_Summary> _f = _load();
   void _reload() => setState(() { _f = _load(); });
 
-  Future<void> _addWallet() async {
-    final name = TextEditingController();
-    final bal = TextEditingController();
-    String type = 'regular';
+  Future<void> _addWallet([Map<String, dynamic>? w]) async {
+    final name = TextEditingController(text: w?['name']);
+    final bal = TextEditingController(text: w == null ? '' : (w['balance'] as num).round().toString());
+    String type = w?['type'] ?? 'regular';
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
-          title: const Text('Dompet baru'),
+          title: Text(w == null ? 'Dompet baru' : 'Ubah dompet'),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
             TextField(controller: name, decoration: const InputDecoration(labelText: 'Nama')),
             TextField(
                 controller: bal,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Saldo awal', prefixText: 'Rp ')),
+                decoration: InputDecoration(labelText: w == null ? 'Saldo awal' : 'Saldo', prefixText: 'Rp ')),
             DropdownButton<String>(
               value: type,
               isExpanded: true,
@@ -66,7 +66,8 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
     );
     if (ok == true && name.text.trim().isNotEmpty && mounted) {
-      await guarded(context, () => repo.addWallet(name.text.trim(), type, parseAmount(bal.text) ?? 0), _reload);
+      final n = name.text.trim(), b = parseAmount(bal.text) ?? 0;
+      await guarded(context, () => w == null ? repo.addWallet(n, type, b) : repo.updateWallet(w['id'], n, type, b), _reload);
     }
   }
 
@@ -299,6 +300,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   child: Card(
                     color: C.accents[s.wallets.indexOf(w) % C.accents.length],
                     child: ListTile(
+                        onTap: () => _addWallet(w),
                         leading: const Icon(Icons.account_balance_wallet_rounded),
                         title: Text(w['name'], style: const TextStyle(fontWeight: FontWeight.w800)),
                         trailing: Text(rp(w['balance']), style: const TextStyle(fontWeight: FontWeight.w800))),

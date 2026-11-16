@@ -15,6 +15,9 @@ class Repo {
   Future<void> addWallet(String name, String type, num balance) =>
       db.from('wallets').insert({'name': name, 'type': type, 'balance': balance});
 
+  Future<void> updateWallet(String id, String name, String type, num balance) =>
+      db.from('wallets').update({'name': name, 'type': type, 'balance': balance}).eq('id', id);
+
   Future<void> deleteWallet(String id) => db.from('wallets').delete().eq('id', id);
 
   Future<List<Map<String, dynamic>>> transactions({DateTime? month}) async {
