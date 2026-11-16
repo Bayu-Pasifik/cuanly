@@ -68,6 +68,53 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  Future<void> _transfer(List<Map<String, dynamic>> wallets) async {
+    if (wallets.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Butuh minimal 2 dompet')));
+      return;
+    }
+    final amt = TextEditingController();
+    String from = wallets[0]['id'], to = wallets[1]['id'];
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, set) {
+          Widget pick(String label, String value, ValueChanged<String> on) => DropdownButton<String>(
+                value: value,
+                isExpanded: true,
+                items: [
+                  for (final w in wallets)
+                    DropdownMenuItem(value: w['id'] as String, child: Text('$label: ${w['name']} (${rp(w['balance'])})')),
+                ],
+                onChanged: (v) => set(() => on(v!)),
+              );
+          return AlertDialog(
+            title: const Text('Transfer antar dompet'),
+            content: Column(mainAxisSize: MainAxisSize.min, children: [
+              pick('Dari', from, (v) => from = v),
+              pick('Ke', to, (v) => to = v),
+              TextField(
+                  controller: amt,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Jumlah', prefixText: 'Rp ')),
+            ]),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Transfer')),
+            ],
+          );
+        },
+      ),
+    );
+    final v = parseAmount(amt.text);
+    if (ok != true || !mounted) return;
+    if (from == to || v == null || v <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dompet harus beda dan jumlah > 0')));
+      return;
+    }
+    await guarded(context, () => repo.transfer(from, to, v), _reload);
+  }
+
   Future<void> _setBudget() async {
     final v = await askAmount(context, 'Anggaran bulan ini');
     if (v != null && mounted) await guarded(context, () => repo.setBudget(DateTime.now(), v), _reload);
@@ -175,6 +222,10 @@ class _DashboardPageState extends State<DashboardPage> {
               ],
               Row(children: [
                 const Expanded(child: Text('Dompet')),
+                TextButton.icon(
+                    onPressed: () => _transfer(s.wallets),
+                    icon: const Icon(Icons.swap_horiz_rounded),
+                    label: const Text('Transfer')),
                 TextButton.icon(onPressed: _addWallet, icon: const Icon(Icons.add), label: const Text('Tambah')),
               ]),
               for (final w in s.wallets)

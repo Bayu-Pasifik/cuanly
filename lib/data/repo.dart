@@ -81,6 +81,11 @@ class Repo {
     }
   }
 
+  Future<void> transfer(String fromId, String toId, num amount) async {
+    await _adjustWallet(fromId, -amount);
+    await _adjustWallet(toId, amount);
+  }
+
   Future<void> _adjustWallet(String id, num delta) async {
     final row = await db.from('wallets').select('balance').eq('id', id).single();
     await db.from('wallets').update({'balance': (row['balance'] as num) + delta}).eq('id', id);
