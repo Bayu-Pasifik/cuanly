@@ -47,10 +47,21 @@ create table if not exists debts (
   created_at timestamptz not null default now()
 );
 
+create table if not exists transfers (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  from_wallet uuid references wallets on delete set null,
+  to_wallet uuid references wallets on delete set null,
+  amount numeric not null check (amount > 0),
+  note text,
+  occurred_on date not null default current_date,
+  created_at timestamptz not null default now()
+);
+
 do $$
 declare t text;
 begin
-  foreach t in array array['wallets', 'transactions', 'monthly_targets', 'dreams', 'debts'] loop
+  foreach t in array array['wallets', 'transactions', 'monthly_targets', 'dreams', 'debts', 'transfers'] loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists own_rows on %I', t);
     execute format(

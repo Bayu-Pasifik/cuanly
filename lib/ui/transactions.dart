@@ -14,13 +14,24 @@ class TransactionsPage extends StatefulWidget {
 
 class _TransactionsPageState extends State<TransactionsPage> {
   DateTime _month = DateTime(DateTime.now().year, DateTime.now().month, 1);
-  late Future<List<Map<String, dynamic>>> _f = repo.transactions(month: _month);
+  late Future<List<Map<String, dynamic>>> _f = _fetch();
 
   String _q = '';
   String? _kindFilter;
 
+  Future<List<Map<String, dynamic>>> _fetch() async {
+    final r = await Future.wait([
+      repo.transactions(month: _month),
+      repo.transfers(_month),
+    ]);
+    return [...r[0], ...r[1]]..sort((a, b) {
+      final c = (b['occurred_on'] as String).compareTo(a['occurred_on'] as String);
+      return c != 0 ? c : (b['created_at'] as String).compareTo(a['created_at'] as String);
+    });
+  }
+
   void _reload() => setState(() {
-    _f = repo.transactions(month: _month);
+    _f = _fetch();
   });
 
   void _shift(int delta) {
@@ -89,6 +100,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                     (null, 'Semua'),
                     ('expense', 'Pengeluaran'),
                     ('income', 'Pemasukan'),
+                    ('transfer', 'Transfer'),
                   ])
                     ChoiceChip(
                       label: Text(o.$2),
@@ -114,21 +126,30 @@ class _TransactionsPageState extends State<TransactionsPage> {
                         itemBuilder: (_, i) {
                           final t = list[i];
                           final income = t['kind'] == 'income';
+                          final xfer = t['kind'] == 'transfer';
                           return Dismissible(
                             key: ValueKey(t['id']),
                             background: Container(color: Colors.red.shade100),
                             onDismissed: (_) => guarded(
                               context,
-                              () => repo.deleteTransaction(t),
+                              () => xfer
+                                  ? repo.deleteTransfer(t)
+                                  : repo.deleteTransaction(t),
                               _reload,
                             ),
                             child: ListTile(
-                              onTap: () => _add(t),
+                              onTap: xfer ? null : () => _add(t),
                               leading: CircleAvatar(
-                                backgroundColor: income ? C.mint : C.coral,
+                                backgroundColor: xfer
+                                    ? Colors.blue.shade100
+                                    : income
+                                    ? C.mint
+                                    : C.coral,
                                 foregroundColor: C.ink,
                                 child: Icon(
-                                  income
+                                  xfer
+                                      ? Icons.swap_horiz_rounded
+                                      : income
                                       ? Icons.south_west_rounded
                                       : Icons.north_east_rounded,
                                   size: 18,
@@ -147,9 +168,11 @@ class _TransactionsPageState extends State<TransactionsPage> {
                                 ].join(' • '),
                               ),
                               trailing: Text(
-                                '${income ? '+' : '-'}${rp(t['amount'])}',
+                                '${xfer ? '' : income ? '+' : '-'}${rp(t['amount'])}',
                                 style: TextStyle(
-                                  color: income
+                                  color: xfer
+                                      ? Colors.blue.shade700
+                                      : income
                                       ? Colors.green.shade700
                                       : Colors.red.shade700,
                                   fontWeight: FontWeight.w600,

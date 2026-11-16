@@ -82,8 +82,37 @@ class Repo {
   }
 
   Future<void> transfer(String fromId, String toId, num amount) async {
+    await db.from('transfers').insert({'from_wallet': fromId, 'to_wallet': toId, 'amount': amount});
     await _adjustWallet(fromId, -amount);
     await _adjustWallet(toId, amount);
+  }
+
+  /// Transfers of [month], newest first, each tagged kind 'transfer' with wallet names in 'note'.
+  Future<List<Map<String, dynamic>>> transfers(DateTime month) async {
+    final rows = List<Map<String, dynamic>>.from(await db
+        .from('transfers')
+        .select()
+        .gte('occurred_on', monthStart(month))
+        .lt('occurred_on', monthStart(DateTime(month.year, month.month + 1, 1)))
+        .order('occurred_on', ascending: false)
+        .order('created_at', ascending: false));
+    final names = {for (final w in await wallets()) w['id']: w['name']};
+    return [
+      for (final r in rows)
+        {
+          ...r,
+          'kind': 'transfer',
+          'category': 'Transfer',
+          'note': '${names[r['from_wallet']] ?? '?'} ke ${names[r['to_wallet']] ?? '?'}',
+        }
+    ];
+  }
+
+  Future<void> deleteTransfer(Map<String, dynamic> t) async {
+    await db.from('transfers').delete().eq('id', t['id']);
+    final amt = t['amount'] as num;
+    if (t['from_wallet'] != null) await _adjustWallet(t['from_wallet'], amt);
+    if (t['to_wallet'] != null) await _adjustWallet(t['to_wallet'], -amt);
   }
 
   Future<void> _adjustWallet(String id, num delta) async {
