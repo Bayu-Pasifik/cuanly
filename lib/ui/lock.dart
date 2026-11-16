@@ -62,8 +62,9 @@ class _LockGateState extends State<LockGate> with WidgetsBindingObserver {
           ? Duration.zero
           : DateTime.now().difference(_leftAt!);
       _leftAt = null;
-      if (_s.hasPin && !_locked && away >= lockGrace)
+      if (_s.hasPin && !_locked && away >= lockGrace) {
         setState(() => _locked = true);
+      }
     }
   }
 
@@ -75,11 +76,12 @@ class _LockGateState extends State<LockGate> with WidgetsBindingObserver {
     try {
       await Supabase.instance.client.auth.signOut();
     } catch (_) {}
-    if (mounted)
+    if (mounted) {
       setState(() {
         _confirmForgot = false;
         _locked = false;
       });
+    }
   }
 
   @override
@@ -184,13 +186,15 @@ class _PinPadState extends State<PinPad> {
   @override
   void initState() {
     super.initState();
-    if (widget.allowBiometric)
+    if (widget.allowBiometric) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _bio());
+    }
   }
 
   Future<void> _bio() async {
-    if (await AppSettings.instance.authenticateBiometric() && mounted)
+    if (await AppSettings.instance.authenticateBiometric() && mounted) {
       widget.onSuccess();
+    }
   }
 
   Future<void> _tap(String d) async {
@@ -216,8 +220,9 @@ class _PinPadState extends State<PinPad> {
   }
 
   void _back() {
-    if (_pin.isNotEmpty && !_busy)
+    if (_pin.isNotEmpty && !_busy) {
       setState(() => _pin = _pin.substring(0, _pin.length - 1));
+    }
   }
 
   @override

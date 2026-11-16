@@ -5,6 +5,7 @@ import '../data/recurring_repo.dart';
 import '../data/reminders.dart';
 import '../data/repo.dart';
 import 'categories.dart';
+import 'challenges.dart';
 import 'dashboard.dart';
 import 'dreams.dart';
 import 'debts.dart';
@@ -59,11 +60,13 @@ class _HomePageState extends State<HomePage> {
             onSelected: (v) {
               if (v == 'cat') _open(const CategoriesPage());
               if (v == 'rec') _open(const RecurringPage());
+              if (v == 'chl') _open(const ChallengesPage());
               if (v == 'rep') _open(const ReportsPage());
               if (v == 'set') _open(const SettingsPage());
             },
             itemBuilder: (_) => const [
               PopupMenuItem(value: 'rep', child: Text('Laporan')),
+              PopupMenuItem(value: 'chl', child: Text('Tantangan hemat')),
               PopupMenuItem(value: 'cat', child: Text('Kategori')),
               PopupMenuItem(value: 'rec', child: Text('Transaksi berulang')),
               PopupMenuItem(value: 'set', child: Text('Pengaturan')),

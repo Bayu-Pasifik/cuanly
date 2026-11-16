@@ -17,6 +17,7 @@ const backupTables = [
   'monthly_targets',
   'debt_payments',
   'dream_contributions',
+  'spending_challenges',
 ];
 
 const _conflictKeys = {
