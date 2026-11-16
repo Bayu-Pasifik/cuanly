@@ -152,7 +152,7 @@ class _SettingsPageState extends State<SettingsPage> {
         section('Tampilan'),
         ValueListenableBuilder<ThemeMode>(
           valueListenable: _s.themeMode,
-          builder: (_, mode, __) => SegmentedButton<ThemeMode>(
+          builder: (_, mode, _) => SegmentedButton<ThemeMode>(
             showSelectedIcon: false,
             segments: const [
               ButtonSegment(value: ThemeMode.system, label: Text('Sistem'), icon: Icon(Icons.brightness_auto)),

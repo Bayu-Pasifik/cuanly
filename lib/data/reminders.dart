@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-import 'repo.dart';
 
 /// How urgent an unpaid debt is relative to its due date.
 enum DueStatus { overdue, today, soon }

@@ -52,8 +52,8 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: BoxDecoration(
                     color: C.yellow,
                     shape: BoxShape.circle,
-                    border: Border.all(color: C.ink, width: 3),
-                    boxShadow: const [BoxShadow(color: C.ink, offset: Offset(4, 4))],
+                    border: Border.all(color: C.fg(context), width: 3),
+                    boxShadow: [BoxShadow(color: C.fg(context), offset: const Offset(4, 4))],
                   ),
                   child: const Icon(Icons.savings_rounded, size: 52, color: C.ink),
                 ),

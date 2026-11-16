@@ -16,7 +16,7 @@ Future<void> main() async {
   await initializeDateFormatting('id_ID');
   await AppSettings.instance.load();
   if (_url.isNotEmpty && _key.isNotEmpty) {
-    await Supabase.initialize(url: _url, anonKey: _key);
+    await Supabase.initialize(url: _url, publishableKey: _key);
   }
   runApp(const CuanlyApp());
 }
@@ -28,7 +28,7 @@ class CuanlyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: AppSettings.instance.themeMode,
-      builder: (_, mode, __) => MaterialApp(
+      builder: (_, mode, _) => MaterialApp(
       title: 'Cuanly',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
@@ -39,7 +39,7 @@ class CuanlyApp extends StatelessWidget {
           ? const _MissingConfig()
           : StreamBuilder<AuthState>(
               stream: Supabase.instance.client.auth.onAuthStateChange,
-              builder: (_, __) =>
+              builder: (_, _) =>
                   Supabase.instance.client.auth.currentSession == null ? const LoginPage() : const HomePage(),
             ),
       ),
