@@ -10,6 +10,7 @@ import 'challenges.dart';
 import 'couple.dart';
 import 'dashboard.dart';
 import 'dreams.dart';
+import 'education.dart';
 import 'investments.dart';
 import 'debts.dart';
 import 'recurring.dart';
@@ -73,6 +74,7 @@ class _HomePageState extends State<HomePage> {
               if (v == 'inv') _open(const InvestmentsPage());
               if (v == 'scn') _open(const ScanReceiptPage());
               if (v == 'biz') _open(const BusinessPage());
+              if (v == 'edu') _open(const EducationPage());
               if (v == 'ins') _open(const InsightsPage());
               if (v == 'rep') _open(const ReportsPage());
               if (v == 'set') _open(const SettingsPage());
@@ -85,6 +87,7 @@ class _HomePageState extends State<HomePage> {
               PopupMenuItem(value: 'cpl', child: Text('Mode pasangan')),
               PopupMenuItem(value: 'inv', child: Text('Investasi')),
               PopupMenuItem(value: 'biz', child: Text('Mode usaha')),
+              PopupMenuItem(value: 'edu', child: Text('Tips & artikel')),
               PopupMenuItem(value: 'scn', child: Text('Scan struk')),
               PopupMenuItem(value: 'ins', child: Text('Insight keuangan')),
               PopupMenuItem(value: 'cat', child: Text('Kategori')),
