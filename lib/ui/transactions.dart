@@ -18,11 +18,31 @@ class _TransactionsPageState extends State<TransactionsPage> {
 
   String _q = '';
   String? _kindFilter;
+  DateTimeRange? _range; // custom range replaces month navigation while set
+
+  Future<void> _pickRange() async {
+    final now = DateTime.now();
+    final r = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(now.year + 1, 12, 31),
+      initialDateRange: _range ?? DateTimeRange(start: _month, end: DateTime(_month.year, _month.month + 1, 0)),
+    );
+    if (r != null) {
+      _range = r;
+      _reload();
+    }
+  }
+
+  String _rangeLabel(DateTimeRange r) {
+    final f = DateFormat('d MMM yyyy', 'id_ID');
+    return '${f.format(r.start)} - ${f.format(r.end)}';
+  }
 
   Future<List<Map<String, dynamic>>> _fetch() async {
     final r = await Future.wait([
-      repo.transactions(month: _month),
-      repo.transfers(_month),
+      if (_range == null) repo.transactions(month: _month) else repo.transactions(from: _range!.start, to: _range!.end),
+      if (_range == null) repo.transfers(month: _month) else repo.transfers(from: _range!.start, to: _range!.end),
     ]);
     return [...r[0], ...r[1]]..sort((a, b) {
       final c = (b['occurred_on'] as String).compareTo(a['occurred_on'] as String);
@@ -66,18 +86,34 @@ class _TransactionsPageState extends State<TransactionsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
-                  onPressed: () => _shift(-1),
-                  icon: const Icon(Icons.chevron_left),
-                ),
+                if (_range == null)
+                  IconButton(
+                    onPressed: () => _shift(-1),
+                    icon: const Icon(Icons.chevron_left),
+                  ),
                 Text(
-                  DateFormat('MMMM yyyy', 'id_ID').format(_month),
+                  _range == null ? DateFormat('MMMM yyyy', 'id_ID').format(_month) : _rangeLabel(_range!),
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
+                if (_range == null)
+                  IconButton(
+                    onPressed: () => _shift(1),
+                    icon: const Icon(Icons.chevron_right),
+                  ),
                 IconButton(
-                  onPressed: () => _shift(1),
-                  icon: const Icon(Icons.chevron_right),
+                  tooltip: 'Pilih rentang tanggal',
+                  onPressed: _pickRange,
+                  icon: const Icon(Icons.date_range),
                 ),
+                if (_range != null)
+                  IconButton(
+                    tooltip: 'Kembali ke bulanan',
+                    onPressed: () {
+                      _range = null;
+                      _reload();
+                    },
+                    icon: const Icon(Icons.close),
+                  ),
               ],
             ),
             Padding(
@@ -115,7 +151,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                   ? Center(
                       child: Text(
                         all.isEmpty
-                            ? 'Belum ada transaksi di bulan ini.'
+                            ? (_range == null ? 'Belum ada transaksi di bulan ini.' : 'Belum ada transaksi di rentang ini.')
                             : 'Tidak ada hasil.',
                       ),
                     )

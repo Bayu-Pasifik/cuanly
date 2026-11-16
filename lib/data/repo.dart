@@ -63,13 +63,17 @@ class Repo {
     return (transactions: (t as List).length, transfers: (f as List).length);
   }
 
-  Future<List<Map<String, dynamic>>> transactions({DateTime? month}) async {
+  /// [from, toExclusive) as date strings for a month or an inclusive [from]..[to] range; null = unbounded.
+  (String, String)? _span(DateTime? month, DateTime? from, DateTime? to) {
+    if (month != null) return (monthStart(month), monthStart(DateTime(month.year, month.month + 1, 1)));
+    if (from != null && to != null) return (dateStr(from), dateStr(DateTime(to.year, to.month, to.day + 1)));
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>> transactions({DateTime? month, DateTime? from, DateTime? to}) async {
     var q = db.from('transactions').select();
-    if (month != null) {
-      q = q
-          .gte('occurred_on', monthStart(month))
-          .lt('occurred_on', monthStart(DateTime(month.year, month.month + 1, 1)));
-    }
+    final span = _span(month, from, to);
+    if (span != null) q = q.gte('occurred_on', span.$1).lt('occurred_on', span.$2);
     return List<Map<String, dynamic>>.from(
         await q.order('occurred_on', ascending: false).order('created_at', ascending: false));
   }
@@ -134,12 +138,11 @@ class Repo {
   }
 
   /// Transfers of [month], newest first, each tagged kind 'transfer' with wallet names in 'note'.
-  Future<List<Map<String, dynamic>>> transfers(DateTime month) async {
-    final rows = List<Map<String, dynamic>>.from(await db
-        .from('transfers')
-        .select()
-        .gte('occurred_on', monthStart(month))
-        .lt('occurred_on', monthStart(DateTime(month.year, month.month + 1, 1)))
+  Future<List<Map<String, dynamic>>> transfers({DateTime? month, DateTime? from, DateTime? to}) async {
+    var tq = db.from('transfers').select();
+    final span = _span(month, from, to);
+    if (span != null) tq = tq.gte('occurred_on', span.$1).lt('occurred_on', span.$2);
+    final rows = List<Map<String, dynamic>>.from(await tq
         .order('occurred_on', ascending: false)
         .order('created_at', ascending: false));
     final names = {for (final w in await wallets()) w['id']: w['name']};
