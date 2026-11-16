@@ -27,7 +27,7 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   late Future<_Summary> _f = _load();
-  void _reload() => setState(() => _f = _load());
+  void _reload() => setState(() { _f = _load(); });
 
   Future<void> _addWallet() async {
     final name = TextEditingController();

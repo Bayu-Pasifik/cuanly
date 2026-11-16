@@ -48,6 +48,30 @@ class Repo {
     if (walletId != null) await _adjustWallet(walletId, kind == 'income' ? amount : -amount);
   }
 
+  /// Updates a transaction and re-balances wallets (old effect reverted, new applied).
+  Future<void> updateTransaction(
+    Map<String, dynamic> old, {
+    required String kind,
+    required num amount,
+    required String category,
+    String? note,
+    String? walletId,
+    required DateTime date,
+  }) async {
+    await db.from('transactions').update({
+      'kind': kind,
+      'amount': amount,
+      'category': category,
+      'note': note,
+      'wallet_id': walletId,
+      'occurred_on': dateStr(date),
+    }).eq('id', old['id']);
+    final ow = old['wallet_id'] as String?;
+    final oamt = old['amount'] as num;
+    if (ow != null) await _adjustWallet(ow, old['kind'] == 'income' ? -oamt : oamt);
+    if (walletId != null) await _adjustWallet(walletId, kind == 'income' ? amount : -amount);
+  }
+
   Future<void> deleteTransaction(Map<String, dynamic> t) async {
     await db.from('transactions').delete().eq('id', t['id']);
     final w = t['wallet_id'] as String?;

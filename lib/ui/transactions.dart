@@ -15,13 +15,13 @@ class TransactionsPage extends StatefulWidget {
 class _TransactionsPageState extends State<TransactionsPage> {
   late Future<List<Map<String, dynamic>>> _f = repo.transactions(month: DateTime.now());
 
-  void _reload() => setState(() => _f = repo.transactions(month: DateTime.now()));
+  void _reload() => setState(() { _f = repo.transactions(month: DateTime.now()); });
 
-  Future<void> _add() async {
+  Future<void> _add([Map<String, dynamic>? existing]) async {
     final ok = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => const AddTransactionSheet(),
+      builder: (_) => AddTransactionSheet(existing: existing),
     );
     if (ok == true) _reload();
   }
@@ -44,6 +44,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
                         background: Container(color: Colors.red.shade100),
                         onDismissed: (_) => guarded(context, () => repo.deleteTransaction(t), _reload),
                         child: ListTile(
+                          onTap: () => _add(t),
                           leading: CircleAvatar(
                               backgroundColor: income ? C.mint : C.coral,
                               foregroundColor: C.ink,
@@ -68,7 +69,9 @@ class _TransactionsPageState extends State<TransactionsPage> {
 }
 
 class AddTransactionSheet extends StatefulWidget {
-  const AddTransactionSheet({super.key});
+  const AddTransactionSheet({super.key, this.existing});
+
+  final Map<String, dynamic>? existing;
 
   @override
   State<AddTransactionSheet> createState() => _AddTransactionSheetState();
@@ -84,6 +87,20 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   late final Future<List<Map<String, dynamic>>> _wallets = repo.wallets();
   bool _busy = false;
 
+  @override
+  void initState() {
+    super.initState();
+    final e = widget.existing;
+    if (e != null) {
+      _kind = e['kind'];
+      _category = e['category'];
+      _walletId = e['wallet_id'];
+      _date = DateTime.parse(e['occurred_on']);
+      _amount.text = (e['amount'] as num).round().toString();
+      _note.text = e['note'] ?? '';
+    }
+  }
+
   List<String> get _cats => _kind == 'expense' ? expenseCategories : incomeCategories;
 
   Future<void> _save() async {
@@ -93,10 +110,14 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       return;
     }
     setState(() => _busy = true);
+    final e = widget.existing;
     await guarded(
       context,
-      () => repo.addTransaction(
-          kind: _kind, amount: amt, category: _category!, note: _note.text.trim(), walletId: _walletId, date: _date),
+      () => e == null
+          ? repo.addTransaction(
+              kind: _kind, amount: amt, category: _category!, note: _note.text.trim(), walletId: _walletId, date: _date)
+          : repo.updateTransaction(e,
+              kind: _kind, amount: amt, category: _category!, note: _note.text.trim(), walletId: _walletId, date: _date),
       () {},
     );
     if (mounted) Navigator.pop(context, true);

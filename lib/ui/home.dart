@@ -32,7 +32,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: IndexedStack(index: _i, children: pages),
+      body: KeyedSubtree(key: ValueKey(_i), child: pages[_i]),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _i,
         onDestinationSelected: (v) => setState(() => _i = v),

@@ -13,7 +13,7 @@ class DreamsPage extends StatefulWidget {
 
 class _DreamsPageState extends State<DreamsPage> {
   late Future<List<Map<String, dynamic>>> _f = repo.dreams();
-  void _reload() => setState(() => _f = repo.dreams());
+  void _reload() => setState(() { _f = repo.dreams(); });
 
   Future<void> _add() async {
     final title = TextEditingController();

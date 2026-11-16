@@ -14,7 +14,7 @@ class DebtsPage extends StatefulWidget {
 
 class _DebtsPageState extends State<DebtsPage> {
   late Future<List<Map<String, dynamic>>> _f = repo.debts();
-  void _reload() => setState(() => _f = repo.debts());
+  void _reload() => setState(() { _f = repo.debts(); });
 
   Future<void> _add() async {
     final person = TextEditingController();
