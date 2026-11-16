@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 class C {
   static const bg = Color(0xFFFFF8E7);
   static const ink = Color(0xFF4A3426);
+  static const darkBg = Color(0xFF1E1812);
+  static const darkCard = Color(0xFF2B2219);
+  static const darkInk = Color(0xFFF3E6CC);
   static const yellow = Color(0xFFFFC93C);
   static const mint = Color(0xFF7BE0B0);
   static const coral = Color(0xFFFF8A80);
@@ -14,40 +17,48 @@ class C {
 
   static const chart = [coral, yellow, mint, lilac, sky, pink, orange, Color(0xFFB8E986)];
   static const accents = [sky, pink, lilac, mint, orange];
+
+  /// Text/outline color for the current theme (dark brown on light, cream on dark).
+  static Color fg(BuildContext context) => Theme.of(context).colorScheme.onSurface;
 }
 
-ThemeData buildTheme() {
-  const border = BorderSide(color: C.ink, width: 2);
+ThemeData buildTheme([Brightness brightness = Brightness.light]) {
+  final dark = brightness == Brightness.dark;
+  final bg = dark ? C.darkBg : C.bg;
+  final fg = dark ? C.darkInk : C.ink; // text and outlines
+  final card = dark ? C.darkCard : Colors.white;
+  final border = BorderSide(color: fg, width: 2);
   final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: border);
-  final scheme = ColorScheme.fromSeed(seedColor: C.yellow, brightness: Brightness.light).copyWith(
+  final scheme = ColorScheme.fromSeed(seedColor: C.yellow, brightness: brightness).copyWith(
     primary: C.yellow,
     onPrimary: C.ink,
     secondary: C.mint,
     onSecondary: C.ink,
-    surface: C.bg,
-    onSurface: C.ink,
+    surface: bg,
+    onSurface: fg,
     error: C.coral,
   );
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
-    scaffoldBackgroundColor: C.bg,
+    scaffoldBackgroundColor: bg,
     fontFamily: 'Roboto',
-    textTheme: ThemeData.light().textTheme.apply(bodyColor: C.ink, displayColor: C.ink),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: C.bg,
-      foregroundColor: C.ink,
+    textTheme: ThemeData(brightness: brightness).textTheme.apply(bodyColor: fg, displayColor: fg),
+    appBarTheme: AppBarTheme(
+      backgroundColor: bg,
+      foregroundColor: fg,
       elevation: 0,
       scrolledUnderElevation: 0,
-      titleTextStyle: TextStyle(color: C.ink, fontSize: 22, fontWeight: FontWeight.w800),
+      titleTextStyle: TextStyle(color: fg, fontSize: 22, fontWeight: FontWeight.w800),
     ),
-    cardTheme: CardThemeData(color: Colors.white, elevation: 0, margin: const EdgeInsets.symmetric(vertical: 6), shape: shape),
+    cardTheme: CardThemeData(color: card, elevation: 0, margin: const EdgeInsets.symmetric(vertical: 6), shape: shape),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: Colors.white,
+      backgroundColor: card,
       indicatorColor: C.yellow,
       surfaceTintColor: Colors.transparent,
-      labelTextStyle: WidgetStateProperty.all(const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
-      iconTheme: WidgetStateProperty.all(const IconThemeData(color: C.ink)),
+      labelTextStyle: WidgetStateProperty.all(TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: fg)),
+      iconTheme: WidgetStateProperty.resolveWith(
+          (s) => IconThemeData(color: s.contains(WidgetState.selected) ? C.ink : fg)),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: C.yellow,
@@ -65,43 +76,57 @@ ThemeData buildTheme() {
       ),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(foregroundColor: C.ink, textStyle: const TextStyle(fontWeight: FontWeight.w700)),
+      style: TextButton.styleFrom(foregroundColor: fg, textStyle: const TextStyle(fontWeight: FontWeight.w700)),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white,
+      fillColor: card,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: border),
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: border),
       focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: C.ink, width: 3)),
+          borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: fg, width: 3)),
     ),
     chipTheme: ChipThemeData(
-      backgroundColor: Colors.white,
+      backgroundColor: card,
       selectedColor: C.mint,
-      side: const BorderSide(color: C.ink, width: 1.5),
-      labelStyle: const TextStyle(color: C.ink, fontWeight: FontWeight.w700),
+      side: BorderSide(color: fg, width: 1.5),
+      labelStyle: TextStyle(color: fg, fontWeight: FontWeight.w700),
+      secondaryLabelStyle: const TextStyle(color: C.ink, fontWeight: FontWeight.w700),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     ),
     segmentedButtonTheme: SegmentedButtonThemeData(
       style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? C.yellow : Colors.white),
-        foregroundColor: WidgetStateProperty.all(C.ink),
-        side: WidgetStateProperty.all(const BorderSide(color: C.ink, width: 2)),
+        backgroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? C.yellow : card),
+        foregroundColor:
+            WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? C.ink : fg),
+        side: WidgetStateProperty.all(BorderSide(color: fg, width: 2)),
       ),
     ),
-    dialogTheme: DialogThemeData(backgroundColor: C.bg, shape: shape),
-    bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: C.bg,
+    dialogTheme: DialogThemeData(backgroundColor: bg, shape: shape),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: bg,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         side: border,
       ),
     ),
-    progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: C.ink,
-      linearTrackColor: Color(0x1A4A3426),
+    progressIndicatorTheme: ProgressIndicatorThemeData(
+      color: fg,
+      linearTrackColor: fg.withValues(alpha: 0.12),
       linearMinHeight: 10,
-      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderRadius: const BorderRadius.all(Radius.circular(8)),
     ),
   );
+}
+
+final _lightTheme = buildTheme();
+
+/// Card with a pastel fill. Always uses the light theme inside, so dark brown text stays readable in dark mode.
+class PastelCard extends StatelessWidget {
+  const PastelCard({super.key, required this.color, required this.child});
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Theme(data: _lightTheme, child: Card(color: color, child: child));
 }

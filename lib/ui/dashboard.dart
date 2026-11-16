@@ -242,21 +242,21 @@ class _DashboardPageState extends State<DashboardPage> {
           return RefreshIndicator(
             onRefresh: () async => _reload(),
             child: ListView(padding: const EdgeInsets.all(16), children: [
-              Card(
+              PastelCard(
                 color: C.yellow,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Text('Total saldo', style: TextStyle(fontWeight: FontWeight.w700)),
                     Text(rp(total),
-                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w900)),
+                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w900, color: C.ink)),
                   ]),
                 ),
               ),
               Builder(builder: (_) {
                 final due = dueDebts(s.debts, DateTime.now());
                 if (due.isEmpty) return const SizedBox.shrink();
-                return Card(
+                return PastelCard(
                   color: C.orange,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
@@ -276,7 +276,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           subtitle: Text(dueLabel(d),
                               style: TextStyle(
                                   fontWeight: FontWeight.w700,
-                                  color: d.status == DueStatus.overdue ? Colors.red.shade900 : C.ink)),
+                                  color: d.status == DueStatus.overdue ? (Theme.of(context).brightness == Brightness.dark ? Colors.red.shade200 : Colors.red.shade900) : C.fg(context))),
                         ),
                     ]),
                   ),
@@ -284,7 +284,7 @@ class _DashboardPageState extends State<DashboardPage> {
               }),
               Row(children: [
                 Expanded(
-                  child: Card(
+                  child: PastelCard(
                     color: C.mint,
                     child: Padding(
                       padding: const EdgeInsets.all(14),
@@ -298,7 +298,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Card(
+                  child: PastelCard(
                     color: C.coral,
                     child: Padding(
                       padding: const EdgeInsets.all(14),
@@ -311,7 +311,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ),
               ]),
-              Card(
+              PastelCard(
                 color: C.lilac,
                 child: ListTile(
                   title: Text(budget == null ? 'Anggaran bulan ini belum diatur' : 'Anggaran ${rp(budget)}'),
@@ -321,7 +321,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           const SizedBox(height: 8),
                           LinearProgressIndicator(
                               value: (expense / budget).clamp(0, 1).toDouble(),
-                              color: expense > budget ? Colors.red.shade700 : C.ink),
+                              color: expense > budget ? Colors.red.shade700 : C.fg(context)),
                           const SizedBox(height: 4),
                           Text(expense > budget
                               ? 'Melebihi ${rp(expense - budget)}'
@@ -416,7 +416,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       const SizedBox(height: 4),
                       LinearProgressIndicator(
                           value: (spent / e.value).clamp(0, 1).toDouble(),
-                          color: over ? Colors.red.shade700 : (spent / e.value >= 0.8 ? Colors.orange.shade700 : C.ink)),
+                          color: over ? Colors.red.shade700 : (spent / e.value >= 0.8 ? Colors.orange.shade700 : C.fg(context))),
                     ]),
                     trailing: Text('${rp(spent)} / ${rp(e.value)}',
                         style: TextStyle(color: over ? Colors.red.shade700 : null, fontWeight: FontWeight.w600)),
@@ -436,7 +436,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   background: Container(color: Colors.red.shade100),
                   confirmDismiss: (_) => _confirmDeleteWallet(w),
                   onDismissed: (_) => guarded(context, () => repo.deleteWallet(w['id']), _reload),
-                  child: Card(
+                  child: PastelCard(
                     color: C.accents[s.wallets.indexOf(w) % C.accents.length],
                     child: ListTile(
                         onTap: () => _addWallet(w),

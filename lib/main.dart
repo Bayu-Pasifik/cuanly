@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'data/settings.dart';
 import 'ui/home.dart';
+import 'ui/lock.dart';
 import 'ui/login.dart';
 import 'ui/theme.dart';
 
@@ -12,6 +14,7 @@ const _key = String.fromEnvironment('SUPABASE_ANON_KEY');
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID');
+  await AppSettings.instance.load();
   if (_url.isNotEmpty && _key.isNotEmpty) {
     await Supabase.initialize(url: _url, anonKey: _key);
   }
@@ -23,10 +26,15 @@ class CuanlyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppSettings.instance.themeMode,
+      builder: (_, mode, __) => MaterialApp(
       title: 'Cuanly',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
+      darkTheme: buildTheme(Brightness.dark),
+      themeMode: mode,
+      builder: (_, child) => LockGate(child: child!),
       home: _url.isEmpty
           ? const _MissingConfig()
           : StreamBuilder<AuthState>(
@@ -34,6 +42,7 @@ class CuanlyApp extends StatelessWidget {
               builder: (_, __) =>
                   Supabase.instance.client.auth.currentSession == null ? const LoginPage() : const HomePage(),
             ),
+      ),
     );
   }
 }
