@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../data/repo.dart';
+import 'category_drill.dart';
 import 'common.dart';
 import 'theme.dart';
 
@@ -198,6 +199,8 @@ class _ReportsPageState extends State<ReportsPage> {
                     for (var i = 0; i < cats.length; i++)
                       ListTile(
                         dense: true,
+                        onTap: () => Navigator.push(
+                            context, MaterialPageRoute(builder: (_) => CategoryDrillPage(category: cats[i].key))),
                         leading: CircleAvatar(radius: 6, backgroundColor: C.chart[i % C.chart.length]),
                         title: Text('${cats[i].key} • ${(cats[i].value / cur.expense * 100).toStringAsFixed(0)}%'),
                         subtitle: _delta(cats[i].value, prev.byCategory[cats[i].key] ?? 0, upIsBad: true),
