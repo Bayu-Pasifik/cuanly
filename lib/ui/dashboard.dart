@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../data/reminders.dart';
 import '../data/repo.dart';
+import '../data/wallet_types.dart';
 import 'common.dart';
 import 'theme.dart';
 
@@ -53,11 +54,9 @@ class _DashboardPageState extends State<DashboardPage> {
             DropdownButton<String>(
               value: type,
               isExpanded: true,
-              items: const [
-                DropdownMenuItem(value: 'regular', child: Text('Reguler')),
-                DropdownMenuItem(value: 'saving', child: Text('Tabungan')),
-                DropdownMenuItem(value: 'credit_card', child: Text('Kartu kredit')),
-                DropdownMenuItem(value: 'investment', child: Text('Investasi')),
+              items: [
+                for (final t in walletTypes)
+                  DropdownMenuItem(value: t.code, child: Row(children: [Icon(t.icon, size: 20), const SizedBox(width: 8), Text(t.label)])),
               ],
               onChanged: (v) => set(() => type = v!),
             ),
@@ -440,8 +439,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     color: C.accents[s.wallets.indexOf(w) % C.accents.length],
                     child: ListTile(
                         onTap: () => _addWallet(w),
-                        leading: const Icon(Icons.account_balance_wallet_rounded),
+                        leading: Icon(walletType(w['type']).icon),
                         title: Text(w['name'], style: const TextStyle(fontWeight: FontWeight.w800)),
+                        subtitle: Text(walletType(w['type']).label),
                         trailing: Text(rp(w['balance']), style: const TextStyle(fontWeight: FontWeight.w800))),
                   ),
                 ),
