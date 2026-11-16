@@ -1,12 +1,14 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../data/repo.dart';
 import 'common.dart';
 import 'theme.dart';
 
 class _Summary {
-  _Summary(this.wallets, this.txs, this.budget);
+  _Summary(this.wallets, this.txs, this.budget, this.trend);
+  final List<({DateTime month, num income, num expense})> trend;
   final List<Map<String, dynamic>> wallets;
   final List<Map<String, dynamic>> txs;
   final num? budget;
@@ -14,8 +16,8 @@ class _Summary {
 
 Future<_Summary> _load() async {
   final now = DateTime.now();
-  final r = await Future.wait([repo.wallets(), repo.transactions(month: now), repo.budget(now)]);
-  return _Summary(r[0] as List<Map<String, dynamic>>, r[1] as List<Map<String, dynamic>>, r[2] as num?);
+  final r = await Future.wait([repo.wallets(), repo.transactions(month: now), repo.budget(now), repo.trend(now)]);
+  return _Summary(r[0] as List<Map<String, dynamic>>, r[1] as List<Map<String, dynamic>>, r[2] as num?, r[3] as List<({DateTime month, num income, num expense})>);
 }
 
 class DashboardPage extends StatefulWidget {
@@ -207,6 +209,51 @@ class _DashboardPageState extends State<DashboardPage> {
                   trailing: TextButton(onPressed: _setBudget, child: const Text('Atur')),
                 ),
               ),
+              const Padding(padding: EdgeInsets.only(top: 8, bottom: 4), child: Text('Tren 6 bulan terakhir')),
+              SizedBox(
+                height: 180,
+                child: BarChart(BarChartData(
+                  gridData: const FlGridData(show: false),
+                  borderData: FlBorderData(show: false),
+                  titlesData: FlTitlesData(
+                    leftTitles: const AxisTitles(),
+                    rightTitles: const AxisTitles(),
+                    topTitles: const AxisTitles(),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (v, _) => Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(DateFormat('MMM', 'id_ID').format(s.trend[v.toInt()].month),
+                              style: const TextStyle(fontSize: 11)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  barTouchData: BarTouchData(
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipItem: (g, _, r, i) => BarTooltipItem(
+                          rp(r.toY), TextStyle(color: i == 0 ? C.mint : C.coral, fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                  barGroups: [
+                    for (var i = 0; i < s.trend.length; i++)
+                      BarChartGroupData(x: i, barsSpace: 3, barRods: [
+                        BarChartRodData(toY: s.trend[i].income.toDouble(), color: C.mint, width: 10),
+                        BarChartRodData(toY: s.trend[i].expense.toDouble(), color: C.coral, width: 10),
+                      ]),
+                  ],
+                )),
+              ),
+              const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                CircleAvatar(radius: 5, backgroundColor: C.mint),
+                SizedBox(width: 4),
+                Text('Masuk', style: TextStyle(fontSize: 12)),
+                SizedBox(width: 12),
+                CircleAvatar(radius: 5, backgroundColor: C.coral),
+                SizedBox(width: 4),
+                Text('Keluar', style: TextStyle(fontSize: 12)),
+              ]),
               if (cats.isNotEmpty) ...[
                 const Padding(padding: EdgeInsets.only(top: 8, bottom: 4), child: Text('Pengeluaran per kategori')),
                 SizedBox(

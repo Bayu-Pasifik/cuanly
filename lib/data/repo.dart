@@ -115,6 +115,30 @@ class Repo {
     if (t['to_wallet'] != null) await _adjustWallet(t['to_wallet'], -amt);
   }
 
+  /// Income/expense totals for the last [months] months, oldest first.
+  Future<List<({DateTime month, num income, num expense})>> trend(DateTime now, {int months = 6}) async {
+    final first = DateTime(now.year, now.month - (months - 1), 1);
+    final rows = await db
+        .from('transactions')
+        .select('kind,amount,occurred_on')
+        .gte('occurred_on', monthStart(first))
+        .lt('occurred_on', monthStart(DateTime(now.year, now.month + 1, 1)));
+    final inc = <String, num>{}, exp = <String, num>{};
+    for (final r in rows) {
+      final k = (r['occurred_on'] as String).substring(0, 7);
+      final m = r['kind'] == 'income' ? inc : exp;
+      m[k] = (m[k] ?? 0) + (r['amount'] as num);
+    }
+    return [
+      for (var i = 0; i < months; i++)
+        () {
+          final d = DateTime(first.year, first.month + i, 1);
+          final k = dateStr(d).substring(0, 7);
+          return (month: d, income: inc[k] ?? 0, expense: exp[k] ?? 0);
+        }()
+    ];
+  }
+
   Future<void> _adjustWallet(String id, num delta) async {
     final row = await db.from('wallets').select('balance').eq('id', id).single();
     await db.from('wallets').update({'balance': (row['balance'] as num) + delta}).eq('id', id);
