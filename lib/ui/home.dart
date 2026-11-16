@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../data/recurring_repo.dart';
+import '../data/repo.dart';
 import 'categories.dart';
 import 'dashboard.dart';
 import 'dreams.dart';
 import 'debts.dart';
+import 'recurring.dart';
 import 'transactions.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,8 +19,30 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _i = 0;
+  int _gen = 0; // bumped to rebuild tabs after background changes
 
   static const _titles = ['Ringkasan', 'Transaksi', 'Impian', 'Utang'];
+
+  @override
+  void initState() {
+    super.initState();
+    _bookRecurring();
+  }
+
+  Future<void> _bookRecurring() async {
+    try {
+      final n = await repo.runDueRecurring();
+      if (n > 0 && mounted) {
+        setState(() => _gen++);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$n transaksi berulang dicatat')));
+      }
+    } catch (_) {
+      // Recurring booking is best effort; the next launch retries.
+    }
+  }
+
+  void _open(Widget page) =>
+      Navigator.push(context, MaterialPageRoute(builder: (_) => page)).then((_) => setState(() => _gen++));
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +53,13 @@ class _HomePageState extends State<HomePage> {
         actions: [
           PopupMenuButton<String>(
             onSelected: (v) {
-              if (v == 'cat') Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoriesPage()));
+              if (v == 'cat') _open(const CategoriesPage());
+              if (v == 'rec') _open(const RecurringPage());
             },
-            itemBuilder: (_) => const [PopupMenuItem(value: 'cat', child: Text('Kategori'))],
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'cat', child: Text('Kategori')),
+              PopupMenuItem(value: 'rec', child: Text('Transaksi berulang')),
+            ],
           ),
           IconButton(
             tooltip: 'Keluar',
@@ -39,7 +68,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: KeyedSubtree(key: ValueKey(_i), child: pages[_i]),
+      body: KeyedSubtree(key: ValueKey('$_i-$_gen'), child: pages[_i]),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _i,
         onDestinationSelected: (v) => setState(() => _i = v),
