@@ -8,6 +8,7 @@ import 'dashboard.dart';
 import 'dreams.dart';
 import 'debts.dart';
 import 'recurring.dart';
+import 'reports.dart';
 import 'transactions.dart';
 
 class HomePage extends StatefulWidget {
@@ -55,8 +56,10 @@ class _HomePageState extends State<HomePage> {
             onSelected: (v) {
               if (v == 'cat') _open(const CategoriesPage());
               if (v == 'rec') _open(const RecurringPage());
+              if (v == 'rep') _open(const ReportsPage());
             },
             itemBuilder: (_) => const [
+              PopupMenuItem(value: 'rep', child: Text('Laporan')),
               PopupMenuItem(value: 'cat', child: Text('Kategori')),
               PopupMenuItem(value: 'rec', child: Text('Transaksi berulang')),
             ],
