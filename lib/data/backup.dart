@@ -20,6 +20,9 @@ const backupTables = [
   'spending_challenges',
   'travel_splits',
   'investments',
+  'business_products',
+  'business_sales',
+  'business_expenses',
 ];
 
 const _conflictKeys = {

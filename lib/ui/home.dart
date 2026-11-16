@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/recurring_repo.dart';
 import '../data/reminders.dart';
 import '../data/repo.dart';
+import 'business.dart';
 import 'categories.dart';
 import 'challenges.dart';
 import 'couple.dart';
@@ -71,6 +72,7 @@ class _HomePageState extends State<HomePage> {
               if (v == 'cpl') _open(const CouplePage());
               if (v == 'inv') _open(const InvestmentsPage());
               if (v == 'scn') _open(const ScanReceiptPage());
+              if (v == 'biz') _open(const BusinessPage());
               if (v == 'ins') _open(const InsightsPage());
               if (v == 'rep') _open(const ReportsPage());
               if (v == 'set') _open(const SettingsPage());
@@ -82,6 +84,7 @@ class _HomePageState extends State<HomePage> {
               PopupMenuItem(value: 'trv', child: Text('Patungan perjalanan')),
               PopupMenuItem(value: 'cpl', child: Text('Mode pasangan')),
               PopupMenuItem(value: 'inv', child: Text('Investasi')),
+              PopupMenuItem(value: 'biz', child: Text('Mode usaha')),
               PopupMenuItem(value: 'scn', child: Text('Scan struk')),
               PopupMenuItem(value: 'ins', child: Text('Insight keuangan')),
               PopupMenuItem(value: 'cat', child: Text('Kategori')),
