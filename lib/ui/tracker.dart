@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../data/repo.dart';
 import '../data/tracker.dart';
@@ -53,7 +54,16 @@ class _TrackerPageState extends State<TrackerPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Cuan Tracker')),
+        appBar: AppBar(title: const Text('Cuan Tracker'), actions: [
+          IconButton(
+            tooltip: 'Bagikan ringkasan',
+            icon: const Icon(Icons.share_outlined),
+            onPressed: () async {
+              final recap = await _f;
+              await SharePlus.instance.share(ShareParams(text: monthSummaryText(recap.last)));
+            },
+          ),
+        ]),
         body: Async<List<MonthRecap>>(
           future: _f,
           builder: (_, recap) {

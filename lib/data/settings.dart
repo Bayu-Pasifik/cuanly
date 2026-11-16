@@ -19,12 +19,14 @@ class AppSettings {
   static const _kBio = 'biometric';
   static const _kPinHash = 'pin_hash';
   static const _kPinSalt = 'pin_salt';
+  static const _kOnboarded = 'onboarded';
 
   final themeMode = ValueNotifier<ThemeMode>(ThemeMode.system);
   final _secure = const FlutterSecureStorage();
   final _auth = LocalAuthentication();
 
   bool _hasPin = false;
+  bool onboarded = false;
   bool biometric = false;
   String? _hash, _salt;
 
@@ -34,6 +36,7 @@ class AppSettings {
     final p = await SharedPreferences.getInstance();
     themeMode.value = ThemeMode.values.firstWhere((m) => m.name == p.getString(_kTheme), orElse: () => ThemeMode.system);
     biometric = p.getBool(_kBio) ?? false;
+    onboarded = p.getBool(_kOnboarded) ?? false;
     try {
       _hash = await _secure.read(key: _kPinHash);
       _salt = await _secure.read(key: _kPinSalt);
@@ -42,6 +45,11 @@ class AppSettings {
     }
     _hasPin = _hash != null && _salt != null;
     if (!_hasPin) biometric = false;
+  }
+
+  Future<void> setOnboarded() async {
+    onboarded = true;
+    (await SharedPreferences.getInstance()).setBool(_kOnboarded, true);
   }
 
   Future<void> setThemeMode(ThemeMode m) async {

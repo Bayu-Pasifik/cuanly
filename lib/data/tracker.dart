@@ -18,6 +18,24 @@ const monthNames = [
 
 String monthLabel(DateTime m) => '${monthNames[m.month - 1]} ${m.year}';
 
+String _rp(num v) => 'Rp ${v.round().toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => '.')}';
+
+/// Shareable text summary of one month.
+String monthSummaryText(({DateTime month, num income, num expense, num? target}) m) {
+  final savings = m.income - m.expense;
+  final b = StringBuffer()
+    ..writeln('Ringkasan keuangan ${monthLabel(m.month)}')
+    ..writeln('Pemasukan: ${_rp(m.income)}')
+    ..writeln('Pengeluaran: ${_rp(m.expense)}')
+    ..writeln('Tabungan: ${savings < 0 ? '-' : ''}${_rp(savings.abs())}');
+  final t = m.target;
+  if (t != null && t > 0) {
+    b.writeln('Target pengeluaran: ${_rp(t)} (${(m.expense / t * 100).round()}% terpakai)');
+  }
+  b.write('Dicatat dengan Cuanly');
+  return b.toString();
+}
+
 typedef MonthRecap = ({DateTime month, num income, num expense, num? target});
 
 extension TrackerRepo on Repo {

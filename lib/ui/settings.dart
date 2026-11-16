@@ -11,8 +11,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/account.dart';
 import '../data/backup.dart';
 import '../data/repo.dart';
+import '../data/legal.dart';
 import '../data/settings.dart';
 import 'auth_gate.dart';
+import 'legal.dart';
 import 'lock.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -302,6 +304,25 @@ class _SettingsPageState extends State<SettingsPage> {
               title: Text('Hapus akun', style: TextStyle(color: Colors.red.shade700)),
               subtitle: const Text('Hapus akun dan semua datanya secara permanen'),
               onTap: _busy ? null : _deleteAccount,
+            ),
+          ]),
+        ),
+        section('Tentang'),
+        Card(
+          child: Column(children: [
+            ListTile(
+              leading: const Icon(Icons.privacy_tip_outlined),
+              title: const Text('Kebijakan privasi'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const LegalPage(title: 'Kebijakan privasi', sections: privacyPolicy))),
+            ),
+            ListTile(
+              leading: const Icon(Icons.description_outlined),
+              title: const Text('Syarat layanan'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const LegalPage(title: 'Syarat layanan', sections: termsOfService))),
             ),
           ]),
         ),

@@ -5,8 +5,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/account.dart';
 import '../data/repo.dart';
+import '../data/settings.dart';
 import 'home.dart';
 import 'login.dart';
+import 'onboarding.dart';
 import 'theme.dart';
 
 /// Chooses between login, the app, and the "new password" screen opened from a reset-password email link.
@@ -24,7 +26,10 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void initState() {
     super.initState();
+    // Someone who is already signed in has no need for the intro if they sign out later.
+    if (Supabase.instance.client.auth.currentSession != null) AppSettings.instance.setOnboarded();
     _sub = Supabase.instance.client.auth.onAuthStateChange.listen((s) {
+      if (s.session != null) AppSettings.instance.setOnboarded();
       if (!mounted) return;
       setState(() {
         if (s.event == AuthChangeEvent.passwordRecovery) _recovery = true;
@@ -41,7 +46,15 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (Supabase.instance.client.auth.currentSession == null) return const LoginPage();
+    if (Supabase.instance.client.auth.currentSession == null) {
+      if (!AppSettings.instance.onboarded) {
+        return OnboardingPage(onDone: () async {
+          await AppSettings.instance.setOnboarded();
+          if (mounted) setState(() {});
+        });
+      }
+      return const LoginPage();
+    }
     if (_recovery) return ResetPasswordPage(onDone: () => setState(() => _recovery = false));
     return const HomePage();
   }
