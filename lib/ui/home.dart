@@ -12,6 +12,7 @@ import 'debts.dart';
 import 'recurring.dart';
 import 'reports.dart';
 import 'settings.dart';
+import 'tracker.dart';
 import 'transactions.dart';
 
 class HomePage extends StatefulWidget {
@@ -61,11 +62,13 @@ class _HomePageState extends State<HomePage> {
               if (v == 'cat') _open(const CategoriesPage());
               if (v == 'rec') _open(const RecurringPage());
               if (v == 'chl') _open(const ChallengesPage());
+              if (v == 'trk') _open(const TrackerPage());
               if (v == 'rep') _open(const ReportsPage());
               if (v == 'set') _open(const SettingsPage());
             },
             itemBuilder: (_) => const [
               PopupMenuItem(value: 'rep', child: Text('Laporan')),
+              PopupMenuItem(value: 'trk', child: Text('Cuan Tracker')),
               PopupMenuItem(value: 'chl', child: Text('Tantangan hemat')),
               PopupMenuItem(value: 'cat', child: Text('Kategori')),
               PopupMenuItem(value: 'rec', child: Text('Transaksi berulang')),
