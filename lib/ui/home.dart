@@ -6,6 +6,7 @@ import '../data/reminders.dart';
 import '../data/repo.dart';
 import 'categories.dart';
 import 'challenges.dart';
+import 'couple.dart';
 import 'dashboard.dart';
 import 'dreams.dart';
 import 'debts.dart';
@@ -65,6 +66,7 @@ class _HomePageState extends State<HomePage> {
               if (v == 'chl') _open(const ChallengesPage());
               if (v == 'trk') _open(const TrackerPage());
               if (v == 'trv') _open(const TravelPage());
+              if (v == 'cpl') _open(const CouplePage());
               if (v == 'rep') _open(const ReportsPage());
               if (v == 'set') _open(const SettingsPage());
             },
@@ -73,6 +75,7 @@ class _HomePageState extends State<HomePage> {
               PopupMenuItem(value: 'trk', child: Text('Cuan Tracker')),
               PopupMenuItem(value: 'chl', child: Text('Tantangan hemat')),
               PopupMenuItem(value: 'trv', child: Text('Patungan perjalanan')),
+              PopupMenuItem(value: 'cpl', child: Text('Mode pasangan')),
               PopupMenuItem(value: 'cat', child: Text('Kategori')),
               PopupMenuItem(value: 'rec', child: Text('Transaksi berulang')),
               PopupMenuItem(value: 'set', child: Text('Pengaturan')),
