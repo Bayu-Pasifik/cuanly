@@ -7,7 +7,8 @@ import 'common.dart';
 import 'theme.dart';
 
 class _Summary {
-  _Summary(this.wallets, this.txs, this.budget, this.trend);
+  _Summary(this.wallets, this.txs, this.budget, this.trend, this.catBudgets);
+  final Map<String, num> catBudgets;
   final List<({DateTime month, num income, num expense})> trend;
   final List<Map<String, dynamic>> wallets;
   final List<Map<String, dynamic>> txs;
@@ -16,8 +17,8 @@ class _Summary {
 
 Future<_Summary> _load() async {
   final now = DateTime.now();
-  final r = await Future.wait([repo.wallets(), repo.transactions(month: now), repo.budget(now), repo.trend(now)]);
-  return _Summary(r[0] as List<Map<String, dynamic>>, r[1] as List<Map<String, dynamic>>, r[2] as num?, r[3] as List<({DateTime month, num income, num expense})>);
+  final r = await Future.wait([repo.wallets(), repo.transactions(month: now), repo.budget(now), repo.trend(now), repo.categoryBudgets()]);
+  return _Summary(r[0] as List<Map<String, dynamic>>, r[1] as List<Map<String, dynamic>>, r[2] as num?, r[3] as List<({DateTime month, num income, num expense})>, r[4] as Map<String, num>);
 }
 
 class DashboardPage extends StatefulWidget {
@@ -154,6 +155,61 @@ class _DashboardPageState extends State<DashboardPage> {
       return;
     }
     await guarded(context, () => repo.transfer(from, to, v), _reload);
+  }
+
+  /// Sets or removes the monthly limit of an expense category. [initial] preselects one.
+  Future<void> _editCategoryBudget(Map<String, num> current, {String? initial}) async {
+    final names = await repo.categoryNames('expense');
+    if (!mounted) return;
+    final all = {...names, ...current.keys}.toList();
+    var cat = initial ?? all.first;
+    final amt = TextEditingController(text: current[cat]?.round().toString() ?? '');
+    var remove = false;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, set) => AlertDialog(
+          title: const Text('Anggaran kategori'),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            DropdownButton<String>(
+              value: cat,
+              isExpanded: true,
+              items: [for (final n in all) DropdownMenuItem(value: n, child: Text(n))],
+              onChanged: (v) => set(() {
+                cat = v!;
+                amt.text = current[cat]?.round().toString() ?? '';
+              }),
+            ),
+            TextField(
+                controller: amt,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Batas per bulan', prefixText: 'Rp ')),
+          ]),
+          actions: [
+            if (current.containsKey(cat))
+              TextButton(
+                  onPressed: () {
+                    remove = true;
+                    Navigator.pop(ctx, true);
+                  },
+                  child: Text('Hapus', style: TextStyle(color: Colors.red.shade700))),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Simpan')),
+          ],
+        ),
+      ),
+    );
+    if (ok != true || !mounted) return;
+    if (remove) {
+      await guarded(context, () => repo.clearCategoryBudget(cat), _reload);
+      return;
+    }
+    final v = parseAmount(amt.text);
+    if (v == null || v <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Isi batas lebih dari 0')));
+      return;
+    }
+    await guarded(context, () => repo.setCategoryBudget(cat, v), _reload);
   }
 
   Future<void> _setBudget() async {
@@ -306,6 +362,35 @@ class _DashboardPageState extends State<DashboardPage> {
                     trailing: Text(rp(cats[i].value)),
                   ),
               ],
+              Row(children: [
+                const Expanded(child: Padding(padding: EdgeInsets.only(top: 8), child: Text('Anggaran per kategori'))),
+                TextButton.icon(
+                    onPressed: () => _editCategoryBudget(s.catBudgets),
+                    icon: const Icon(Icons.tune_rounded),
+                    label: const Text('Atur')),
+              ]),
+              if (s.catBudgets.isEmpty)
+                const Padding(
+                    padding: EdgeInsets.only(bottom: 8),
+                    child: Text('Belum ada batas per kategori.', style: TextStyle(fontSize: 12))),
+              for (final e in (s.catBudgets.entries.toList()..sort((a, b) => a.key.compareTo(b.key))))
+                Builder(builder: (_) {
+                  final spent = byCat[e.key] ?? 0;
+                  final over = spent > e.value;
+                  return ListTile(
+                    dense: true,
+                    onTap: () => _editCategoryBudget(s.catBudgets, initial: e.key),
+                    title: Text(e.key),
+                    subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      const SizedBox(height: 4),
+                      LinearProgressIndicator(
+                          value: (spent / e.value).clamp(0, 1).toDouble(),
+                          color: over ? Colors.red.shade700 : (spent / e.value >= 0.8 ? Colors.orange.shade700 : C.ink)),
+                    ]),
+                    trailing: Text('${rp(spent)} / ${rp(e.value)}',
+                        style: TextStyle(color: over ? Colors.red.shade700 : null, fontWeight: FontWeight.w600)),
+                  );
+                }),
               Row(children: [
                 const Expanded(child: Text('Dompet')),
                 TextButton.icon(

@@ -198,6 +198,17 @@ class Repo {
   Future<void> setBudget(DateTime month, num value) =>
       db.from('monthly_targets').upsert({'month': monthStart(month), 'budget': value}, onConflict: 'user_id,month');
 
+  /// Monthly spending limit per expense category (same limit every month).
+  Future<Map<String, num>> categoryBudgets() async => {
+        for (final r in await db.from('category_budgets').select()) r['category'] as String: r['amount'] as num
+      };
+
+  Future<void> setCategoryBudget(String category, num amount) =>
+      db.from('category_budgets').upsert({'category': category, 'amount': amount}, onConflict: 'user_id,category');
+
+  Future<void> clearCategoryBudget(String category) =>
+      db.from('category_budgets').delete().eq('category', category);
+
   Future<List<Map<String, dynamic>>> dreams() async =>
       List<Map<String, dynamic>>.from(await db.from('dreams').select().order('created_at'));
   Future<void> addDream(String title, num target) => db.from('dreams').insert({'title': title, 'target': target});
