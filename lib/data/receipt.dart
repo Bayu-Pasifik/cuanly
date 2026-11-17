@@ -51,8 +51,84 @@ const _totalKeywords = <List<String>>[
 
 const _skipInTotal = ['subtotal', 'sub total', 'sub-total', 'kembali', 'change', 'diskon', 'discount', 'ppn', 'pajak', 'tax', 'item', 'qty'];
 
+const _tenderWords = ['tunai', 'cash', 'bayar', 'dibayar', 'uang', 'tendered', 'debit', 'kartu', 'card'];
+const _changeWords = ['kembali', 'kembalian', 'change'];
+
+bool _hasAny(String lower, List<String> words) => words.any(lower.contains);
+
+/// Last amount on [lines][i], or on the next line when this one has none (value printed below).
+num? _amountAt(List<String> lines, int i) {
+  var a = amountsIn(lines[i]);
+  if (a.isEmpty && i + 1 < lines.length) a = amountsIn(lines[i + 1]);
+  return a.isEmpty ? null : a.last;
+}
+
+/// Receipts without a TOTAL line (small shops, waserda): use the "BARIS=3 QTY=3,00 23.000,00"
+/// summary line, else cash given minus change returned.
+num? _totalWithoutKeyword(List<String> lines) {
+  for (var i = 0; i < lines.length; i++) {
+    final l = lines[i].toLowerCase();
+    if (l.contains('baris') || l.contains('qty')) {
+      final a = amountsIn(lines[i]).where((v) => v >= 100).toList(); // skip the quantity itself
+      if (a.isNotEmpty) return a.last;
+    }
+  }
+  num? tender, change;
+  for (var i = 0; i < lines.length; i++) {
+    final l = lines[i].toLowerCase();
+    if (_hasAny(l, _changeWords)) {
+      change ??= _amountAt(lines, i);
+    } else if (_hasAny(l, _tenderWords)) {
+      tender ??= _amountAt(lines, i);
+    }
+  }
+  if (tender != null && change != null && tender > change) return tender - change;
+  return _totalByArithmetic(lines);
+}
+
+/// OCR often reads a receipt column by column, so labels end up apart from their values
+/// (`Tunai | Kembali | 23.000 | 100.000 | 77.000`). The numbers still add up: the bill equals the
+/// sum of the item amounts just before it, and bill + change = cash given.
+num? _totalByArithmetic(List<String> lines) {
+  final all = <num>[];
+  for (final l in lines) {
+    for (final m in _amountToken.allMatches(l)) {
+      final raw = m.group(0)!;
+      final v = parseMoney(raw);
+      if (v == null || v < 1000 || v > 100000000) continue;
+      if (raw.length >= 10 && !raw.contains(RegExp(r'[.,]'))) continue; // phone numbers and barcodes
+      all.add(v);
+    }
+  }
+  num? best;
+  // A value equal to the sum of the 2+ amounts right before it.
+  for (var i = 2; i < all.length; i++) {
+    num sum = 0;
+    for (var j = i - 1; j >= 0 && i - j <= 12; j--) {
+      sum += all[j];
+      if (i - j >= 2 && sum == all[i] && (best == null || all[i] > best)) best = all[i];
+    }
+  }
+  if (best != null) return best;
+  // bill + change = cash given
+  // The bill is printed before the change, so of the pair the earlier one is the bill.
+  for (var a = 0; a < all.length; a++) {
+    for (var b = a + 1; b < all.length; b++) {
+      for (var c = 0; c < all.length; c++) {
+        if (c != a && c != b && all[a] + all[b] == all[c]) return all[a];
+      }
+    }
+  }
+  return null;
+}
+
 num? _findTotal(List<String> lines) {
-  for (final group in _totalKeywords) {
+  for (var g = 0; g < _totalKeywords.length; g++) {
+    if (g == 2) {
+      final derived = _totalWithoutKeyword(lines);
+      if (derived != null) return derived;
+    }
+    final group = _totalKeywords[g];
     final found = <num>[];
     for (var i = 0; i < lines.length; i++) {
       final l = lines[i].toLowerCase();
@@ -67,6 +143,8 @@ num? _findTotal(List<String> lines) {
   // No keyword: the biggest plausible amount (ignores barcodes and phone numbers).
   num? best;
   for (final l in lines) {
+    final lower = l.toLowerCase();
+    if (_hasAny(lower, _tenderWords) || _hasAny(lower, _changeWords)) continue; // cash given / change is not the bill
     for (final m in _amountToken.allMatches(l)) {
       final raw = m.group(0)!;
       final v = parseMoney(raw);
@@ -112,9 +190,13 @@ DateTime? findDate(String text) {
   return null;
 }
 
+final _addressLine = RegExp(r'^(jl|jln|jalan|telp|tel|hp|wa|no|alamat|npwp)\b', caseSensitive: false);
+
 String? _merchant(List<String> lines) {
   for (final l in lines.take(6)) {
     final t = l.trim();
+    if (_addressLine.hasMatch(t)) break; // header ends at the address: the shop name was not read, do not guess
+
     final letters = RegExp(r'[A-Za-z]').allMatches(t).length;
     if (t.length < 3 || t.length > 40 || letters < 3 || letters / t.length < .6) continue;
     if (RegExp(r'^(struk|nota|receipt|invoice|kasir|tanggal|date)\b', caseSensitive: false).hasMatch(t)) continue;
@@ -126,7 +208,7 @@ String? _merchant(List<String> lines) {
 const _categoryHints = <String, List<String>>{
   'Makan': ['resto', 'restoran', 'cafe', 'kafe', 'warung', 'bakso', 'mie', 'ayam', 'kopi', 'coffee', 'bakery', 'pizza', 'burger', 'kfc', 'mcd', 'starbucks', 'sate', 'nasi', 'food'],
   'Transport': ['spbu', 'pertamina', 'shell', 'bensin', 'grab', 'gojek', 'parkir', 'tol', 'taxi', 'bluebird', 'kereta', 'krl', 'mrt', 'tiket pesawat'],
-  'Belanja': ['indomaret', 'alfamart', 'alfamidi', 'supermarket', 'minimarket', 'hypermart', 'carrefour', 'lotte', 'transmart', 'mart', 'toko', 'mall'],
+  'Belanja': ['indomaret', 'alfamart', 'alfamidi', 'supermarket', 'minimarket', 'hypermart', 'carrefour', 'lotte', 'transmart', 'mart', 'toko', 'mall', 'waserda', 'koperasi', 'swalayan'],
   'Tagihan': ['pln', 'pdam', 'telkom', 'indihome', 'listrik', 'token', 'pulsa', 'internet', 'bpjs'],
   'Hiburan': ['bioskop', 'cinema', 'xxi', 'cgv', 'netflix', 'spotify', 'game', 'karaoke'],
   'Kesehatan': ['apotek', 'apotik', 'klinik', 'rumah sakit', 'pharmacy', 'kimia farma', 'guardian', 'dokter'],
