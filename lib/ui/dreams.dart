@@ -83,7 +83,7 @@ class _DreamsPageState extends State<DreamsPage> {
               padding: const EdgeInsets.all(16),
               children: [
                 for (final d in list)
-                  Card(
+                  PastelCard(
                     color: C.accents[list.indexOf(d) % C.accents.length],
                     child: Padding(
                       padding: const EdgeInsets.all(16),

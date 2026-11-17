@@ -104,7 +104,7 @@ class _DebtsPageState extends State<DebtsPage> {
               ]),
               if (list.isEmpty) const Padding(padding: EdgeInsets.all(32), child: Center(child: Text('Tidak ada catatan utang.'))),
               for (final d in list)
-                Card(
+                PastelCard(
                   color: d['direction'] == 'owe' ? C.pink : C.sky,
                   child: ListTile(
                     title: Text('${d['direction'] == 'owe' ? 'Ke' : 'Dari'} ${d['person']}'),
