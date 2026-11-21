@@ -89,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Lupa password?'),
-        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        content: Column(mainAxisSize: MainAxisSize.min, spacing: 12, crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('Masukkan email akunmu. Kami kirim tautan untuk membuat password baru.'),
           TextField(controller: c, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email')),
         ]),

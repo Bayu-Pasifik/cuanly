@@ -162,7 +162,7 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
           title: const Text('Ubah password'),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
+          content: Column(mainAxisSize: MainAxisSize.min, spacing: 12, children: [
             TextField(controller: pass, obscureText: true, decoration: const InputDecoration(labelText: 'Password baru')),
             TextField(controller: confirm, obscureText: true, decoration: const InputDecoration(labelText: 'Ulangi password')),
             if (error != null)
@@ -201,10 +201,9 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
           title: const Text('Hapus akun?'),
-          content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          content: Column(mainAxisSize: MainAxisSize.min, spacing: 12, crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('Semua dompet, transaksi, impian, utang, dan data lain akan dihapus permanen dan tidak bisa dipulihkan. '
                 'Buat backup dulu bila perlu.'),
-            const SizedBox(height: 12),
             TextField(
               controller: c,
               onChanged: (_) => set(() {}),

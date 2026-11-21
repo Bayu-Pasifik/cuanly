@@ -415,6 +415,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
+            runSpacing: 8,
             children: [
               for (final c in _cats)
                 ChoiceChip(

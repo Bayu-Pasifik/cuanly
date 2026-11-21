@@ -37,7 +37,7 @@ class _DebtsPageState extends State<DebtsPage> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
           title: Text(d == null ? 'Catat utang' : 'Ubah utang'),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
+          content: Column(mainAxisSize: MainAxisSize.min, spacing: 12, children: [
             SegmentedButton<String>(
               segments: const [
                 ButtonSegment(value: 'owe', label: Text('Saya berutang')),

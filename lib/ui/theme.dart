@@ -117,7 +117,12 @@ ThemeData buildTheme([Brightness brightness = Brightness.light]) {
         side: WidgetStateProperty.all(BorderSide(color: fg, width: 2)),
       ),
     ),
-    dialogTheme: DialogThemeData(backgroundColor: bg, shape: shape),
+    dialogTheme: DialogThemeData(
+      backgroundColor: bg,
+      shape: shape,
+      titleTextStyle: TextStyle(color: fg, fontSize: 22, fontWeight: FontWeight.w800),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+    ),
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: bg,
       shape: RoundedRectangleBorder(

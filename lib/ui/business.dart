@@ -26,7 +26,7 @@ class _BusinessPageState extends State<BusinessPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Pengaturan struk'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
+        content: Column(mainAxisSize: MainAxisSize.min, spacing: 12, children: [
           TextField(controller: name, decoration: const InputDecoration(labelText: 'Nama usaha')),
           TextField(controller: footer, decoration: const InputDecoration(labelText: 'Catatan bawah struk')),
         ]),
@@ -220,7 +220,7 @@ class _ProductsTabState extends State<ProductsTab> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(p == null ? 'Produk baru' : 'Ubah produk'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
+        content: Column(mainAxisSize: MainAxisSize.min, spacing: 12, children: [
           TextField(controller: name, decoration: const InputDecoration(labelText: 'Nama')),
           TextField(
               controller: price,
@@ -304,7 +304,7 @@ class _ReportTabState extends State<ReportTab> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Biaya usaha'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
+        content: Column(mainAxisSize: MainAxisSize.min, spacing: 12, children: [
           TextField(controller: desc, decoration: const InputDecoration(labelText: 'Keterangan (sewa, listrik, ...)')),
           TextField(
               controller: amt,

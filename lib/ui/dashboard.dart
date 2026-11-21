@@ -45,7 +45,7 @@ class _DashboardPageState extends State<DashboardPage> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
           title: Text(w == null ? 'Dompet baru' : 'Ubah dompet'),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
+          content: Column(mainAxisSize: MainAxisSize.min, spacing: 12, children: [
             TextField(controller: name, decoration: const InputDecoration(labelText: 'Nama')),
             TextField(
                 controller: bal,
@@ -128,7 +128,7 @@ class _DashboardPageState extends State<DashboardPage> {
               );
           return AlertDialog(
             title: const Text('Transfer antar dompet'),
-            content: Column(mainAxisSize: MainAxisSize.min, children: [
+            content: Column(mainAxisSize: MainAxisSize.min, spacing: 12, children: [
               pick('Dari', from, (v) => from = v),
               pick('Ke', to, (v) => to = v),
               TextField(
@@ -171,7 +171,7 @@ class _DashboardPageState extends State<DashboardPage> {
       builder: (_) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
           title: const Text('Anggaran kategori'),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
+          content: Column(mainAxisSize: MainAxisSize.min, spacing: 12, children: [
             DropdownButton<String>(
               value: cat,
               isExpanded: true,

@@ -30,6 +30,7 @@ class _DreamsPageState extends State<DreamsPage> {
         title: Text(d == null ? 'Impian baru' : 'Ubah impian'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          spacing: 12,
           children: [
             TextField(
               controller: title,
