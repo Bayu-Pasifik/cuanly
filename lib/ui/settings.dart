@@ -3,7 +3,9 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -13,6 +15,7 @@ import '../data/backup.dart';
 import '../data/repo.dart';
 import '../data/legal.dart';
 import '../data/settings.dart';
+import '../data/update_check.dart';
 import 'auth_gate.dart';
 import 'legal.dart';
 import 'lock.dart';
@@ -34,6 +37,44 @@ class _SettingsPageState extends State<SettingsPage> {
     _s.biometricAvailable().then((v) {
       if (mounted) setState(() => _bioAvailable = v);
     });
+    PackageInfo.fromPlatform().then((p) {
+      if (mounted) setState(() => _version = p.version);
+    });
+  }
+
+  String _version = '';
+
+  Future<void> _checkUpdate() async {
+    setState(() => _busy = true);
+    try {
+      final info = _version.isEmpty ? null : await checkForUpdate(_version);
+      if (!mounted) return;
+      if (info == null) return;
+      if (!info.available) {
+        _snack('Kamu sudah memakai versi terbaru ($_version)');
+        return;
+      }
+      final open = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Versi ${info.version} tersedia'),
+          content: SingleChildScrollView(
+            child: Text(info.notes.isEmpty ? 'Versi baru siap diunduh.' : info.notes),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Nanti')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(info.apkUrl != null ? 'Unduh APK' : 'Buka GitHub')),
+          ],
+        ),
+      );
+      if (open == true) {
+        await launchUrl(Uri.parse(info.apkUrl ?? info.pageUrl), mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {
+      if (mounted) _snack('Gagal memeriksa pembaruan. Periksa koneksi internet.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   void _snack(String m) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
@@ -309,6 +350,12 @@ class _SettingsPageState extends State<SettingsPage> {
         section('Tentang'),
         Card(
           child: Column(children: [
+            ListTile(
+              leading: const Icon(Icons.system_update_outlined),
+              title: const Text('Periksa pembaruan'),
+              subtitle: Text(_version.isEmpty ? 'Cek versi terbaru di GitHub' : 'Versi $_version · cek versi terbaru di GitHub'),
+              onTap: _busy ? null : _checkUpdate,
+            ),
             ListTile(
               leading: const Icon(Icons.privacy_tip_outlined),
               title: const Text('Kebijakan privasi'),
