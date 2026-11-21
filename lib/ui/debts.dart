@@ -100,9 +100,10 @@ class _DebtsPageState extends State<DebtsPage> {
             return ListView(padding: const EdgeInsets.all(16), children: [
               Row(children: [
                 Expanded(child: PastelCard(color: C.coral, child: ListTile(title: const Text('Utangmu'), subtitle: Text(rp(owe), style: const TextStyle(fontWeight: FontWeight.w800))))),
+                const SizedBox(width: 8),
                 Expanded(child: PastelCard(color: C.mint, child: ListTile(title: const Text('Piutangmu'), subtitle: Text(rp(lent), style: const TextStyle(fontWeight: FontWeight.w800))))),
               ]),
-              if (list.isEmpty) const Padding(padding: EdgeInsets.all(32), child: Center(child: Text('Tidak ada catatan utang.'))),
+              if (list.isEmpty) const Padding(padding: EdgeInsets.only(top: 48), child: EmptyState(icon: Icons.handshake_outlined, message: 'Tidak ada catatan utang.')),
               for (final d in list)
                 PastelCard(
                   color: d['direction'] == 'owe' ? C.pink : C.sky,

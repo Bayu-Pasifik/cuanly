@@ -329,7 +329,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   trailing: TextButton(onPressed: _setBudget, child: const Text('Atur')),
                 ),
               ),
-              const Padding(padding: EdgeInsets.only(top: 8, bottom: 4), child: Text('Tren 6 bulan terakhir')),
+              const SectionTitle('Tren 6 bulan terakhir'),
               SizedBox(
                 height: 180,
                 child: BarChart(BarChartData(
@@ -375,7 +375,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 Text('Keluar', style: TextStyle(fontSize: 12)),
               ]),
               if (cats.isNotEmpty) ...[
-                const Padding(padding: EdgeInsets.only(top: 8, bottom: 4), child: Text('Pengeluaran per kategori')),
+                const SectionTitle('Pengeluaran per kategori'),
                 SizedBox(
                   height: 180,
                   child: PieChart(PieChartData(sectionsSpace: 2, centerSpaceRadius: 40, sections: [
@@ -387,13 +387,15 @@ class _DashboardPageState extends State<DashboardPage> {
                 for (var i = 0; i < cats.length; i++)
                   ListTile(
                     dense: true,
+                    minLeadingWidth: 12,
+                    horizontalTitleGap: 12,
                     leading: CircleAvatar(radius: 6, backgroundColor: colors[i % colors.length]),
                     title: Text(cats[i].key),
                     trailing: Text(rp(cats[i].value)),
                   ),
               ],
               Row(children: [
-                const Expanded(child: Padding(padding: EdgeInsets.only(top: 8), child: Text('Anggaran per kategori'))),
+                const Expanded(child: SectionTitle('Anggaran per kategori')),
                 TextButton.icon(
                     onPressed: () => _editCategoryBudget(s.catBudgets),
                     icon: const Icon(Icons.tune_rounded),
@@ -401,7 +403,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ]),
               if (s.catBudgets.isEmpty)
                 const Padding(
-                    padding: EdgeInsets.only(bottom: 8),
+                    padding: EdgeInsets.fromLTRB(4, 0, 0, 8),
                     child: Text('Belum ada batas per kategori.', style: TextStyle(fontSize: 12))),
               for (final e in (s.catBudgets.entries.toList()..sort((a, b) => a.key.compareTo(b.key))))
                 Builder(builder: (_) {
@@ -422,7 +424,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   );
                 }),
               Row(children: [
-                const Expanded(child: Text('Dompet')),
+                const Expanded(child: SectionTitle('Dompet')),
                 TextButton.icon(
                     onPressed: () => _transfer(s.wallets),
                     icon: const Icon(Icons.swap_horiz_rounded),

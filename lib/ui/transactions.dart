@@ -164,7 +164,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: TextField(
                 onChanged: (v) => setState(() => _q = v),
                 decoration: const InputDecoration(
@@ -175,32 +175,36 @@ class _TransactionsPageState extends State<TransactionsPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Wrap(
-                spacing: 8,
-                children: [
-                  for (final o in const [
-                    (null, 'Semua'),
-                    ('expense', 'Pengeluaran'),
-                    ('income', 'Pemasukan'),
-                    ('transfer', 'Transfer'),
-                  ])
-                    ChoiceChip(
-                      label: Text(o.$2),
-                      selected: _kindFilter == o.$1,
-                      onSelected: (_) => setState(() => _kindFilter = o.$1),
-                    ),
-                ],
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final o in const [
+                      (null, "Semua"),
+                      ("expense", "Pengeluaran"),
+                      ("income", "Pemasukan"),
+                      ("transfer", "Transfer"),
+                    ])
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(o.$2),
+                          selected: _kindFilter == o.$1,
+                          onSelected: (_) => setState(() => _kindFilter = o.$1),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
             Expanded(
               child: list.isEmpty
-                  ? Center(
-                      child: Text(
-                        all.isEmpty
-                            ? (_range == null ? 'Belum ada transaksi di bulan ini.' : 'Belum ada transaksi di rentang ini.')
-                            : 'Tidak ada hasil.',
-                      ),
+                  ? EmptyState(
+                      icon: Icons.receipt_long_outlined,
+                      message: all.isEmpty
+                          ? (_range == null ? "Belum ada transaksi di bulan ini." : "Belum ada transaksi di rentang ini.")
+                          : "Tidak ada hasil.",
                     )
                   : RefreshIndicator(
                       onRefresh: () async => _reload(),

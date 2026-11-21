@@ -78,7 +78,7 @@ class _DreamsPageState extends State<DreamsPage> {
     body: Async<List<Map<String, dynamic>>>(
       future: _f,
       builder: (_, list) => list.isEmpty
-          ? const Center(child: Text('Belum ada impian. Tambah satu!'))
+          ? const EmptyState(icon: Icons.savings_outlined, message: 'Belum ada impian. Tambah satu!')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

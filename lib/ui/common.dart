@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'theme.dart';
+
 final _rp = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 String rp(num v) => _rp.format(v);
 
@@ -72,3 +74,38 @@ Future<bool> confirmDelete(BuildContext context, String title, {String? message,
       ),
     ) ??
     false;
+
+/// Bold heading for a block of content; keeps section spacing uniform across screens.
+class SectionTitle extends StatelessWidget {
+  const SectionTitle(this.text, {super.key, this.action});
+  final String text;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(4, 16, 0, 4),
+        child: Row(children: [
+          Expanded(child: Text(text, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800))),
+          ?action,
+        ]),
+      );
+}
+
+/// Friendly placeholder for a screen or list with nothing in it yet.
+class EmptyState extends StatelessWidget {
+  const EmptyState({super.key, required this.icon, required this.message});
+  final IconData icon;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, size: 56, color: C.fg(context).withValues(alpha: .35)),
+            const SizedBox(height: 12),
+            Text(message, textAlign: TextAlign.center, style: TextStyle(color: C.fg(context).withValues(alpha: .7))),
+          ]),
+        ),
+      );
+}
