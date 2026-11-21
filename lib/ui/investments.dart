@@ -281,11 +281,13 @@ class _AddInvestmentSheetState extends State<AddInvestmentSheet> {
             TextField(
                 controller: _capital,
                 keyboardType: TextInputType.number,
+                inputFormatters: const [AmountFormatter()],
                 decoration: const InputDecoration(labelText: 'Modal', prefixText: 'Rp ')),
             const SizedBox(height: 12),
             TextField(
                 controller: _value,
                 keyboardType: TextInputType.number,
+                inputFormatters: const [AmountFormatter()],
                 decoration: const InputDecoration(labelText: 'Nilai saat ini (opsional)', prefixText: 'Rp ', helperText: 'Kosong = sama dengan modal')),
             const SizedBox(height: 4),
             TextButton.icon(onPressed: _pickDate, icon: const Icon(Icons.event), label: Text('Dibeli ${dateStr(_date)}')),
@@ -312,7 +314,7 @@ class RecommendationSheet extends StatefulWidget {
 }
 
 class _RecommendationSheetState extends State<RecommendationSheet> {
-  late final _total = TextEditingController(text: widget.initialTotal?.round().toString() ?? '');
+  late final _total = TextEditingController(text: widget.initialTotal == null ? '' : fmtAmount(widget.initialTotal!));
   String _profile = 'moderate';
 
   @override
@@ -338,6 +340,7 @@ class _RecommendationSheetState extends State<RecommendationSheet> {
           TextField(
             controller: _total,
             keyboardType: TextInputType.number,
+            inputFormatters: const [AmountFormatter()],
             onChanged: (_) => setState(() {}),
             decoration: const InputDecoration(labelText: 'Dana yang diinvestasikan', prefixText: 'Rp '),
           ),

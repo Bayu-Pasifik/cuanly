@@ -29,7 +29,7 @@ class _DebtsPageState extends State<DebtsPage> {
 
   Future<void> _add([Map<String, dynamic>? d]) async {
     final person = TextEditingController(text: d?['person']);
-    final total = TextEditingController(text: d == null ? '' : (d['total'] as num).round().toString());
+    final total = TextEditingController(text: d == null ? '' : fmtAmount(d['total'] as num));
     String dir = d?['direction'] ?? 'owe';
     DateTime? due = d?['due_on'] == null ? null : DateTime.parse(d!['due_on']);
     final ok = await showDialog<bool>(
@@ -50,6 +50,7 @@ class _DebtsPageState extends State<DebtsPage> {
             TextField(
                 controller: total,
                 keyboardType: TextInputType.number,
+                inputFormatters: const [AmountFormatter()],
                 decoration: const InputDecoration(labelText: 'Jumlah', prefixText: 'Rp ')),
             TextButton(
               onPressed: () async {

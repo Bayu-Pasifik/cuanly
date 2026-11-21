@@ -261,6 +261,7 @@ class _TripEditorPageState extends State<TripEditorPage> {
                 TextField(
                   controller: _rows[i].amount,
                   keyboardType: TextInputType.number,
+                  inputFormatters: const [AmountFormatter()],
                   onChanged: (_) => setState(() {}),
                   decoration: const InputDecoration(labelText: 'Jumlah', prefixText: 'Rp '),
                 ),

@@ -147,6 +147,7 @@ class _AddRecurringSheetState extends State<_AddRecurringSheet> {
             TextField(
               controller: _amount,
               keyboardType: TextInputType.number,
+              inputFormatters: const [AmountFormatter()],
               decoration: const InputDecoration(labelText: 'Nominal', prefixText: 'Rp ', border: OutlineInputBorder()),
             ),
             const SizedBox(height: 12),

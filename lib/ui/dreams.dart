@@ -22,7 +22,7 @@ class _DreamsPageState extends State<DreamsPage> {
   Future<void> _add([Map<String, dynamic>? d]) async {
     final title = TextEditingController(text: d?['title']);
     final target = TextEditingController(
-      text: d == null ? '' : (d['target'] as num).round().toString(),
+      text: d == null ? '' : fmtAmount(d['target'] as num),
     );
     final ok = await showDialog<bool>(
       context: context,
@@ -39,6 +39,7 @@ class _DreamsPageState extends State<DreamsPage> {
             TextField(
               controller: target,
               keyboardType: TextInputType.number,
+              inputFormatters: const [AmountFormatter()],
               decoration: const InputDecoration(
                 labelText: 'Target',
                 prefixText: 'Rp ',

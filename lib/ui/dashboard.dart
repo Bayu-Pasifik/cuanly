@@ -37,7 +37,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> _addWallet([Map<String, dynamic>? w]) async {
     final name = TextEditingController(text: w?['name']);
-    final bal = TextEditingController(text: w == null ? '' : (w['balance'] as num).round().toString());
+    final bal = TextEditingController(text: w == null ? '' : fmtAmount(w['balance'] as num));
     String type = w?['type'] ?? 'regular';
     var wantDelete = false;
     final ok = await showDialog<bool>(
@@ -50,6 +50,7 @@ class _DashboardPageState extends State<DashboardPage> {
             TextField(
                 controller: bal,
                 keyboardType: TextInputType.number,
+                inputFormatters: const [AmountFormatter()],
                 decoration: InputDecoration(labelText: w == null ? 'Saldo awal' : 'Saldo', prefixText: 'Rp ')),
             DropdownButton<String>(
               value: type,
@@ -134,6 +135,7 @@ class _DashboardPageState extends State<DashboardPage> {
               TextField(
                   controller: amt,
                   keyboardType: TextInputType.number,
+                  inputFormatters: const [AmountFormatter()],
                   decoration: const InputDecoration(labelText: 'Jumlah', prefixText: 'Rp ')),
             ]),
             actions: [
@@ -164,7 +166,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (!mounted) return;
     final all = {...names, ...current.keys}.toList();
     var cat = initial ?? all.first;
-    final amt = TextEditingController(text: current[cat]?.round().toString() ?? '');
+    final amt = TextEditingController(text: current[cat] == null ? '' : fmtAmount(current[cat]!));
     var remove = false;
     final ok = await showDialog<bool>(
       context: context,
@@ -178,12 +180,13 @@ class _DashboardPageState extends State<DashboardPage> {
               items: [for (final n in all) DropdownMenuItem(value: n, child: Text(n))],
               onChanged: (v) => set(() {
                 cat = v!;
-                amt.text = current[cat]?.round().toString() ?? '';
+                amt.text = current[cat] == null ? '' : fmtAmount(current[cat]!);
               }),
             ),
             TextField(
                 controller: amt,
                 keyboardType: TextInputType.number,
+                inputFormatters: const [AmountFormatter()],
                 decoration: const InputDecoration(labelText: 'Batas per bulan', prefixText: 'Rp ')),
           ]),
           actions: [

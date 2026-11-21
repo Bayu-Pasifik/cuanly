@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import 'theme.dart';
@@ -19,6 +20,7 @@ Future<num?> askAmount(BuildContext context, String title) async {
           controller: c,
           autofocus: true,
           keyboardType: TextInputType.number,
+          inputFormatters: const [AmountFormatter()],
           decoration: const InputDecoration(prefixText: 'Rp ')),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
@@ -108,4 +110,40 @@ class EmptyState extends StatelessWidget {
           ]),
         ),
       );
+}
+
+final _grouped = NumberFormat.decimalPattern('id_ID');
+
+/// Whole-number amount with thousand separators, e.g. 1000000 -> "1.000.000". Used to prefill amount fields.
+String fmtAmount(num v) => _grouped.format(v.round());
+
+/// Keeps only digits and regroups them as the user types, so "1000000" becomes "1.000.000".
+class AmountFormatter extends TextInputFormatter {
+  const AmountFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue old, TextEditingValue next) {
+    final digits = next.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) return const TextEditingValue();
+    // A balance can already be negative when editing; keep that sign instead of silently dropping it.
+    final neg = old.text.startsWith('-') && next.text.startsWith('-');
+    final text = '${neg ? '-' : ''}${_grouped.format(int.parse(digits))}';
+    // Keep the caret after the same number of digits it followed before regrouping.
+    final before = next.text.substring(0, next.selection.end.clamp(0, next.text.length));
+    final caretDigits = before.replaceAll(RegExp(r'[^0-9]'), '').length;
+    var seen = 0, offset = text.length;
+    final skip = neg ? 1 : 0;
+    if (caretDigits == 0) {
+      offset = 0;
+    } else {
+      for (var i = skip; i < text.length; i++) {
+        if (text[i] != '.') seen++;
+        if (seen == caretDigits) {
+          offset = i + 1;
+          break;
+        }
+      }
+    }
+    return TextEditingValue(text: text, selection: TextSelection.collapsed(offset: offset));
+  }
 }

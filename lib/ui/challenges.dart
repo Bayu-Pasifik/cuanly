@@ -163,7 +163,7 @@ class _ChallengeSheetState extends State<ChallengeSheet> {
     final c = widget.existing;
     if (c == null) return;
     _title.text = c['title'];
-    _limit.text = (c['budget_limit'] as num).round().toString();
+    _limit.text = fmtAmount(c['budget_limit'] as num);
     _picked.addAll(splitCategories(c['category']));
     _range = DateTimeRange(start: DateTime.parse(c['start_date']), end: DateTime.parse(c['end_date']));
     _renew = c['auto_renew'] == true;
@@ -247,6 +247,7 @@ class _ChallengeSheetState extends State<ChallengeSheet> {
           TextField(
             controller: _limit,
             keyboardType: TextInputType.number,
+            inputFormatters: const [AmountFormatter()],
             decoration: const InputDecoration(labelText: 'Batas pengeluaran', prefixText: 'Rp '),
           ),
           const SizedBox(height: 12),

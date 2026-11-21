@@ -183,6 +183,7 @@ class _PosTabState extends State<PosTab> {
             TextField(
               controller: _received,
               keyboardType: TextInputType.number,
+              inputFormatters: const [AmountFormatter()],
               onChanged: (_) => setState(() {}),
               decoration: const InputDecoration(labelText: 'Uang diterima (opsional)', prefixText: 'Rp '),
             ),
@@ -214,8 +215,8 @@ class _ProductsTabState extends State<ProductsTab> {
 
   Future<void> _edit([Map<String, dynamic>? p]) async {
     final name = TextEditingController(text: p?['name']);
-    final price = TextEditingController(text: p == null ? '' : (p['price'] as num).round().toString());
-    final cost = TextEditingController(text: p == null ? '' : (p['cost'] as num).round().toString());
+    final price = TextEditingController(text: p == null ? '' : fmtAmount(p["price"] as num));
+    final cost = TextEditingController(text: p == null ? '' : fmtAmount(p["cost"] as num));
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -225,10 +226,12 @@ class _ProductsTabState extends State<ProductsTab> {
           TextField(
               controller: price,
               keyboardType: TextInputType.number,
+              inputFormatters: const [AmountFormatter()],
               decoration: const InputDecoration(labelText: 'Harga jual', prefixText: 'Rp ')),
           TextField(
               controller: cost,
               keyboardType: TextInputType.number,
+              inputFormatters: const [AmountFormatter()],
               decoration: const InputDecoration(labelText: 'Harga modal (opsional)', prefixText: 'Rp ')),
         ]),
         actions: [
@@ -309,6 +312,7 @@ class _ReportTabState extends State<ReportTab> {
           TextField(
               controller: amt,
               keyboardType: TextInputType.number,
+              inputFormatters: const [AmountFormatter()],
               decoration: const InputDecoration(labelText: 'Jumlah', prefixText: 'Rp ')),
         ]),
         actions: [

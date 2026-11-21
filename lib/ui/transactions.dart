@@ -315,7 +315,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       _walletId = e['wallet_id'];
       _date = DateTime.parse(e['occurred_on']);
       final amt = e['amount'] as num;
-      _amount.text = amt > 0 ? amt.round().toString() : '';
+      _amount.text = amt > 0 ? fmtAmount(amt) : '';
       _note.text = e['note'] ?? '';
     }
     _loadCats();
@@ -406,6 +406,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           TextField(
             controller: _amount,
             keyboardType: TextInputType.number,
+            inputFormatters: const [AmountFormatter()],
             decoration: const InputDecoration(
               labelText: 'Nominal',
               prefixText: 'Rp ',
